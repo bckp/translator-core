@@ -1,0 +1,27 @@
+{
+	"name": "bckp/translator-core",
+	"description": "Simple and fast PHP translator",
+	"keywords": ["translator"],
+	"homepage": "https://github.com/bckp/translator-core",
+	"authors": [
+		{
+			"name": "Radovan Kepák",
+			"homepage": "https://kepak.eu"
+		}
+	],
+	"require": {
+		"php": ">=7.1 <7.4",
+		"nette/php-generator": "^3.2",
+		"nette/neon": ">2.4"
+	},
+	"suggest": {
+		"bckp/translator-nette": "For NETTE support"
+	},
+	"autoload": {
+		"classmap": ["src/"]
+	},
+	"require-dev": {
+		"phpstan/phpstan-shim": "^0.11",
+		"nette/tester": "^2.2"
+	}
+}
