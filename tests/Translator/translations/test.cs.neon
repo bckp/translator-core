@@ -1,0 +1,10 @@
+welcome: 'Vítejte'
+plural:
+	zero: 'žádný člověk'
+	one: '%d člověk'
+	few: '%d lidé'
+	other: '%d lidí'
+blank: ''
+options:
+	zero: 'vypnuto'
+	one: 'zapnuto'

@@ -1,0 +1,38 @@
+<?php
+
+/**
+ * This file was auto-generated
+ */
+
+declare(strict_types=1);
+
+use Atlas\Translator\PluralProvider;
+
+/**
+ * This file was auto-generated
+ */
+class x9Catalogue5cd96524e669d extends Atlas\Translator\Catalogue implements Atlas\Translator\ICatalogue
+{
+	protected $locale = 'x9';
+
+	protected $build = 1557751076;
+
+	protected static $messages = [
+		'test.cs.neon.welcome' => 'Vítejte',
+		'test.cs.neon.plural' => [
+			'zero' => 'žádný člověk',
+			'one' => 'jeden člověk',
+			'few' => '%d lidé',
+			'other' => '%d lidí',
+		],
+		'test.cs.neon.next' => 'This is next translation',
+	];
+
+
+	public function plural(?int $n): string
+	{
+		return PluralProvider::enPlural($n);
+	}
+}
+
+return new x9Catalogue5cd96524e669d;

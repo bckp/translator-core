@@ -1,0 +1,5 @@
+welcome: 'Welcome'
+plural:
+	zero: 'no person'
+	one: '%d person'
+	other: '%d persons'
