@@ -1,0 +1,7 @@
+welcome: 'Vítejte'
+plural:
+	zero: 'žádný člověk'
+	one: 'jeden člověk'
+	few: '%d lidé'
+	other: '%d lidí'
+next: 'This is next translation'
