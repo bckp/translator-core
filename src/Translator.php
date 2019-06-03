@@ -25,6 +25,7 @@ use function vsprintf;
  * Class Translator
  *
  * @package Bckp\Translator
+ * @method string normalizeCallback(string $string)
  */
 class Translator implements ITranslator {
 	/**
@@ -38,6 +39,11 @@ class Translator implements ITranslator {
 	private $diagnostics;
 
 	/**
+	 * @var callable
+	 */
+	private $normalizeCallback;
+
+	/**
 	 * Translator constructor.
 	 *
 	 * @param ICatalogue $catalogue
@@ -45,9 +51,17 @@ class Translator implements ITranslator {
 	 */
 	public function __construct(ICatalogue $catalogue, IDiagnostics $diagnostics = null) {
 		$this->catalogue = $catalogue;
+		$this->normalizeCallback = [$this, 'normalize'];
 		if ($this->diagnostics = $diagnostics) {
 			$this->diagnostics->setLocale($catalogue->locale());
 		}
+	}
+
+	/**
+	 * @param callable $callback
+	 */
+	public function setNormalizeCallback(callable $callback) {
+		$this->normalizeCallback = $callback;
 	}
 
 	/**
@@ -57,7 +71,7 @@ class Translator implements ITranslator {
 	 */
 	public function translate($message, ...$parameters): string {
 		// html and empty are returned without processing
-		if (empty($message) || $message instanceof \Nette\Utils\Html)
+		if (empty($message))
 			return (string) $message;
 
 		// expand parameters
@@ -90,7 +104,8 @@ class Translator implements ITranslator {
 			}
 
 			if ($parameters) {
-				$result = @vsprintf($this->normalize($result), $parameters); // Intentionally @ as argument count can mismatch
+				$result = ($this->normalizeCallback)($result);
+				$result = @vsprintf($result, $parameters); // Intentionally @ as argument count can mismatch
 			}
 		} else {
 			$this->untranslated((string) $message);
@@ -135,20 +150,20 @@ class Translator implements ITranslator {
 	}
 
 	/**
-	 * Normalize string to preserve nette placeholders
-	 *
-	 * @param string $string
-	 * @return string
-	 */
-	protected function normalize(string $string): string {
-		return (string) str_replace(['%label', '%value', '%name'], ['%%label', '%%value', '%%name'], $string);
-	}
-
-	/**
 	 * @param string $message
 	 */
 	protected function untranslated(string $message): void {
 		if ($this->diagnostics !== null)
 			$this->diagnostics->untranslated($message);
+	}
+
+	/**
+	 * Normalize string to preserve frameworks placeholders
+	 *
+	 * @param string $string
+	 * @return string
+	 */
+	public function normalize(string $string): string {
+		return (string) str_replace(['%label', '%value', '%name'], ['%%label', '%%value', '%%name'], $string);
 	}
 }
