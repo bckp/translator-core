@@ -23,6 +23,6 @@
 	},
 	"require-dev": {
 		"phpstan/phpstan-shim": "^0.11",
-		"nette/tester": "^2.2"
+		"nette/tester": "@dev"
 	}
 }
