@@ -11,7 +11,7 @@
 		}
 	],
 	"require": {
-		"php": ">=7.1 <=7.4",
+		"php": "^7.1",
 		"nette/php-generator": "^3.3",
 		"nette/neon": ">=2.4"
 	},
