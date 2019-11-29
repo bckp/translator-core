@@ -1,79 +1,82 @@
-<?php declare(strict_types=1);
+<?php
+
 /**
  * BCKP Translator
  * (c) Radovan Kepák
  *
- * For the full copyright and license information, please view the file license.md that was distributed with this source code.
+ * For the full copyright and license information, please view
+ * the file license.md that was distributed with this source code.
  *
  * @author Radovan Kepak <radovan@kepak.eu>
- *  --------------------------------------------------------------------------
  */
+
+declare(strict_types=1);
 
 namespace Bckp\Translator\Diagnostics;
 
 use Bckp\Translator\IDiagnostics;
+
+use function array_unique;
 
 /**
  * Class Diagnostics
  *
  * @package Bckp\Translator\Diagnostics
  */
-class Diagnostics implements IDiagnostics {
+class Diagnostics implements IDiagnostics
+{
+    /** @var string */
+    private $locale = '';
 
-	/**
-	 * @var array
-	 */
-	private $messages = [];
+    /** @var array */
+    private $messages = [];
 
-	/**
-	 * @var array
-	 */
-	private $untranslated = [];
+    /** @var array */
+    private $untranslated = [];
 
-	/**
-	 * @var string
-	 */
-	private $locale = '';
+    /**
+     * @return string
+     */
+    public function getLocale(): string
+    {
+        return $this->locale;
+    }
 
-	/**
-	 * @param string $locale
-	 */
-	public function setLocale(string $locale): void {
-		$this->locale = $locale;
-	}
+    /**
+     * @return array
+     */
+    public function getUntranslated(): array
+    {
+        return array_unique($this->untranslated);
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getLocale(): string{
-		return $this->locale;
-	}
+    /**
+     * @return array
+     */
+    public function getWarnings(): array
+    {
+        return array_unique($this->messages);
+    }
 
-	/**
-	 * @param string $message
-	 */
-	public function warning(string $message): void {
-		$this->messages[] = $message;
-	}
+    /** @param string $locale */
+    public function setLocale(string $locale): void
+    {
+        $this->locale = $locale;
+    }
 
-	/**
-	 * @param string $message
-	 */
-	public function untranslated(string $message): void {
-		$this->untranslated[] = $message;
-	}
+    /**
+     * @param string $message
+     */
+    public function untranslated(string $message): void
+    {
+        $this->untranslated[] = $message;
+    }
 
-	/**
-	 * @return array
-	 */
-	public function getUntranslated(): array {
-		return array_unique($this->untranslated);
-	}
-
-	/**
-	 * @return array
-	 */
-	public function getWarnings(): array {
-		return array_unique($this->messages);
-	}
+    /**
+     * @param string $message
+     */
+    public function warning(string $message): void
+    {
+        $this->messages[] = $message;
+    }
 }

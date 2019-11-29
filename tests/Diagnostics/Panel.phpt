@@ -1,15 +1,14 @@
 <?php declare(strict_types=1);
 
 namespace Bckp\Translator;
-use Bckp\Translator\Builder\Catalogue;
+
 use Bckp\Translator\Diagnostics\Diagnostics;
 use Bckp\Translator\Diagnostics\Panel;
-use Nette\Utils\Html;
 use Tester\Assert;
 
 require __DIR__ . '/../bootstrap.php';
 
-$panel = new Diagnostics;
+$panel = new Diagnostics();
 Assert::falsey($panel->getWarnings());
 $panel->warning('bug 1');
 Assert::equal(1, count($panel->getWarnings()));

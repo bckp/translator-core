@@ -22,6 +22,7 @@
 		"classmap": ["src/"]
 	},
 	"require-dev": {
+		"squizlabs/php_codesniffer": "*",
 		"phpstan/phpstan-shim": "^0.11",
 		"nette/tester": "^2.3"
 	}

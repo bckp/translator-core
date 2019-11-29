@@ -1,13 +1,16 @@
-<?php declare(strict_types=1);
+<?php
+
 /**
  * BCKP Translator
  * (c) Radovan Kepák
  *
- * For the full copyright and license information, please view the file license.md that was distributed with this source code.
+ * For the full copyright and license information, please view
+ * the file license.md that was distributed with this source code.
  *
  * @author Radovan Kepak <radovan@kepak.eu>
- *  --------------------------------------------------------------------------
  */
+
+declare(strict_types=1);
 
 namespace Bckp\Translator;
 
@@ -16,38 +19,38 @@ namespace Bckp\Translator;
  *
  * @package Bckp\Translator
  */
-interface ICatalogue {
+interface ICatalogue
+{
+    /**
+     * Get build time in seconds
+     * @return int
+     */
+    public function buildTime(): int;
 
-	/**
-	 * Plural form getter
-	 * @param int $n
-	 * @return string
-	 */
-	public function plural(int $n): string;
+    /**
+     * Get the message translation
+     * @param string $message
+     * @return string|array return array if plural is detected
+     */
+    public function get(string $message);
 
-	/**
-	 * Get locale
-	 * @return string
-	 */
-	public function locale(): string;
+    /**
+     * Check if catalogue has message translation
+     * @param string $message
+     * @return bool
+     */
+    public function has(string $message): bool;
 
-	/**
-	 * Check if catalogue has message translation
-	 * @param string $message
-	 * @return bool
-	 */
-	public function has(string $message): bool;
+    /**
+     * Get locale
+     * @return string
+     */
+    public function locale(): string;
 
-	/**
-	 * Get the message translation
-	 * @param string $message
-	 * @return string|array return array if plural is detected
-	 */
-	public function get(string $message);
-
-	/**
-	 * Get build time in seconds
-	 * @return int
-	 */
-	public function buildTime(): int;
+    /**
+     * Plural form getter
+     * @param int $n
+     * @return string
+     */
+    public function plural(int $n): string;
 }
