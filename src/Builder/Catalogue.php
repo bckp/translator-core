@@ -172,7 +172,7 @@ class Catalogue {
 		$method->setParameters($plural->getParameters());
 		$parameters = $method->getParameters();
 		$method->setBody('return PluralProvider::?($?);', [$plural->getName(), key($parameters)]);
-		$method->setReturnNullable($plural->getReturnNullable());
+		$method->setReturnNullable($plural->isReturnNullable());
 		$method->setReturnType($plural->getReturnType());
 
 		// Messages & build time

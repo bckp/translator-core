@@ -12,8 +12,8 @@
 	],
 	"require": {
 		"php": ">=7.1 <=7.4",
-		"nette/php-generator": "^3.2.1",
-		"nette/neon": ">2.4"
+		"nette/php-generator": "^3.3",
+		"nette/neon": ">=2.4"
 	},
 	"suggest": {
 		"bckp/translator-nette": "For NETTE support"

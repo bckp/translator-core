@@ -23,4 +23,9 @@ interface ITranslator {
 	 * @return string
 	 */
 	public function translate($message, ...$params): string;
+
+    /**
+     * @param callable $callback function(string $string): string
+     */
+    public function setNormalizeCallback(callable $callback): void;
 }

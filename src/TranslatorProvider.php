@@ -83,8 +83,6 @@ class TranslatorProvider {
 		if (!isset($this->catalogues[$locale]))
 			throw new TranslatorException("Language {$locale} requested, but corresponding catalogue missing.");
 
-		$translator = new Translator($this->catalogues[$locale]->compile(), $this->diagnostics);
-
-		return $translator;
+		return new Translator($this->catalogues[$locale]->compile(), $this->diagnostics);
 	}
 }

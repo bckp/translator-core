@@ -8,3 +8,5 @@ blank: ''
 options:
 	zero: 'vypnuto'
 	one: 'zapnuto'
+normalize: 'Hodnota prvku %value ma byt %s.'
+normalize2: 'Hodnota prvku %value.'

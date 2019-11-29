@@ -25,7 +25,6 @@ use function vsprintf;
  * Class Translator
  *
  * @package Bckp\Translator
- * @method string normalizeCallback(string $string)
  */
 class Translator implements ITranslator {
 	/**
@@ -39,7 +38,7 @@ class Translator implements ITranslator {
 	private $diagnostics;
 
 	/**
-	 * @var callable
+	 * @var callable function(string $string)
 	 */
 	private $normalizeCallback;
 
@@ -59,8 +58,9 @@ class Translator implements ITranslator {
 
 	/**
 	 * @param callable $callback
+     * @return void
 	 */
-	public function setNormalizeCallback(callable $callback) {
+	public function setNormalizeCallback(callable $callback): void {
 		$this->normalizeCallback = $callback;
 	}
 

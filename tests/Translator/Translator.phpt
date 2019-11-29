@@ -65,3 +65,22 @@ Assert::truthy($panel->getWarnings());
 Assert::exception(function () use ($provider) {
 	return $provider->getTranslator('jp');
 }, TranslatorException::class);
+
+// Normalize check
+$translator = $provider->getTranslator('cs');
+
+$callbackUsed = false;
+$translator->setNormalizeCallback(function(string $string)use(&$callbackUsed){
+    $callbackUsed = true;
+    return str_replace('%value', '%%value', $string);
+});
+Assert::equal('Hodnota prvku %value ma byt test.', $translator->translate('test.normalize', 'test'));
+Assert::true($callbackUsed, 'Callback should be used.');
+
+$callbackUsed = false;
+$translator->setNormalizeCallback(function(string $string)use(&$callbackUsed){
+    $callbackUsed = true;
+    return str_replace('%value', '%%value', $string);
+});
+Assert::equal('Hodnota prvku %value.', $translator->translate('test.normalize2'));
+Assert::false($callbackUsed, 'Callback shouldn`t be used.');
