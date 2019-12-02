@@ -14,7 +14,7 @@ declare(strict_types=1);
 
 namespace Bckp\Translator;
 
-use Bckp\Translator\Builder\Catalogue;
+use Bckp\Translator\Builder\Catalogue as BuilderCatalogue;
 
 use function strtolower;
 
@@ -25,7 +25,7 @@ use function strtolower;
  */
 class TranslatorProvider
 {
-    /** @var Catalogue[] */
+    /** @var BuilderCatalogue[] */
     protected $catalogues = [];
 
     /** @var IDiagnostics|null */
@@ -51,10 +51,10 @@ class TranslatorProvider
 
     /**
      * @param string $locale
-     * @param Catalogue $builder
+     * @param BuilderCatalogue $builder
      * @return void
      */
-    public function addCatalogue(string $locale, Catalogue $builder): void
+    public function addCatalogue(string $locale, BuilderCatalogue $builder): void
     {
         $locale = strtolower($locale);
         $this->catalogues[$locale] = $builder;

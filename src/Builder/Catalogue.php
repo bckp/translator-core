@@ -277,6 +277,7 @@ class Catalogue
      */
     private function unlink(string $filename): void
     {
+        /** @scrutinizer ignore-unhandled */
         @unlink($filename); // @ intentionally as file may not exists
         $this->loaded = false;
     }

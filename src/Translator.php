@@ -88,7 +88,7 @@ class Translator implements ITranslator
         }
 
         // expand parameters
-        if (!$parameters && is_array($message) && is_numeric($message[1] ?? null)) {
+        if (empty($parameters) && is_array($message) && is_numeric($message[1] ?? null)) {
             $parameters[] = $message[1];
         }
 
@@ -106,13 +106,17 @@ class Translator implements ITranslator
             // plural
             if (is_array($translation)) {
                 if (!array_key_exists($form, $translation) || $form === null) {
-                    $this->warn('Plural form not defined. (message: %s, form: %s)', (string)$message, (string)$form);
+                    $this->warn(
+                        'Plural form not defined. (message: %s, form: %s)',
+                        (string)$message,
+                        (string)$form
+                    );
                     end($translation);
                     $form = key($translation);
                 }
 
                 $result = $translation[$form];
-            } elseif (is_string($translation)) {
+            } else {
                 $result = $translation;
             }
 
@@ -140,7 +144,7 @@ class Translator implements ITranslator
         }
 
         if (is_array($message) && is_string($message[0])) {
-            $plural = $this->catalogue->plural((int)$message[1] ?? null);
+            $plural = $this->catalogue->plural((int)$message[1] ?? 1);
             return $message[0];
         }
 
@@ -168,7 +172,7 @@ class Translator implements ITranslator
      */
     protected function warn(string $message, ...$parameters): string
     {
-        if ($parameters) {
+        if (!empty($parameters)) {
             $message = @vsprintf($message, $parameters);
         } // Intentionally @ as parameter count can mismatch
 
