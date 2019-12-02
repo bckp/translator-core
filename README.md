@@ -4,9 +4,9 @@ Bckp\Translator
 [![Downloads this Month](https://img.shields.io/packagist/dm/bckp/translator-core.svg)](https://packagist.org/packages/bckp/translator-core)
 [![Build Status](https://travis-ci.org/bckp/translator-core.svg?branch=master)](https://travis-ci.org/bckp/translator-core)
 [![Coverage Status](https://coveralls.io/repos/github/bckp/translator-core/badge.svg?branch=master)](https://coveralls.io/github/bckp/translator-core?branch=master)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/bckp/translator-core/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/bckp/translator-core/?branch=master)
 [![Latest Stable Version](https://poser.pugx.org/bckp/translator-core/v/stable)](https://packagist.org/packages/bckp/translator-core)
 [![License](https://img.shields.io/badge/license-New%20BSD-blue.svg)](https://github.com/nette/application/blob/master/license.md)
-[![Scutinizer](https://img.shields.io/scrutinizer/quality/g/bckp/translator-core)](https://img.shields.io/scrutinizer/quality/g/bckp/translator-core)
 
 Simple and fast PHP translator
 
@@ -14,7 +14,7 @@ Usage
 -----
 For each language, we create Catalogue, that will compile PHP cache file with translations.
 ```php
-$catalogue = new Catalogue(ew PluralProvider(), './path/to/cache', 'cs');
+$catalogue = new Catalogue(new PluralProvider(), './path/to/cache', 'cs');
 $catalogue->addFile('./path/to/locales/errors.cs.neon');
 $catalogue->addFile('./path/to/locales/messages.cs.neon');
 
@@ -31,6 +31,20 @@ $translator->translate('messages.withArgsRev', 'Honza', 'poledne'); // Will outp
 ```
 
 Debug mode will made translator slower, it will check every time you call compile() if some of language files did change or not, and if they do, automaticly recompile cache, this is Good for development, but BAD on production mode.
+
+Or you can use TranslatorProvider
+```php
+$catalogue = new Catalogue(new PluralProvider(), './path/to/cache', 'cs');
+$catalogue->addFile('./path/to/locales/errors.cs.neon');
+$catalogue->addFile('./path/to/locales/messages.cs.neon');
+
+$provider = new TranslatorProvider(['cs','en']);
+$provider->addCatalogue('cs', $catalogue);
+
+$translator = $provider->getTranslator('cs');
+```
+
+Great about this approach is, if you use more then one language, and switch between them, translator provider will compile catalogue only on first use, then use the compiled one.
 
 
 Translation file format
@@ -53,4 +67,8 @@ error.notFound: 'Soubor nenalezen'
 error.notMatch: 'Soubor neodpovídá zadání'
 error.typeMismatch: 'Neplatný typ souboru'
 ```
+
+Diagnostics
+-----------
+You can use simple diagnostics (or implement one), if you want to know, what is wrong with your translations, this is primary for framework integration (like Nette one).
 
