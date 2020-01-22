@@ -23,7 +23,7 @@
 	},
 	"require-dev": {
 		"squizlabs/php_codesniffer": "*",
-		"phpstan/phpstan-shim": "^0.12",
+		"phpstan/phpstan": "^0.12",
 		"nette/tester": "^2.3"
 	}
 }
