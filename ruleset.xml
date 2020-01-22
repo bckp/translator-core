@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<ruleset name="Translator">
+    <description>bckp/translator-core coding standard.</description>
+
+    <rule ref="PSR1"/>
+    <rule ref="PSR2"/>
+    <rule ref="PSR12"/>
+</ruleset>
