@@ -21,7 +21,7 @@ namespace Bckp\Translator;
  */
 abstract class Catalogue implements ICatalogue
 {
-    /** @var array */
+    /** @var array<string|array> */
     protected static $messages;
 
     /** @var int */
@@ -44,7 +44,7 @@ abstract class Catalogue implements ICatalogue
      * Get the message translation
      *
      * @param string $message
-     * @return string|array return array if plural is detected
+     * @return string|array<string> return array if plural is detected
      */
     public function get(string $message)
     {

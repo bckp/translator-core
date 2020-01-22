@@ -30,7 +30,7 @@ interface ICatalogue
     /**
      * Get the message translation
      * @param string $message
-     * @return string|array return array if plural is detected
+     * @return string|string[] return array if plural is detected
      */
     public function get(string $message);
 

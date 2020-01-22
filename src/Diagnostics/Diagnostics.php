@@ -28,10 +28,10 @@ class Diagnostics implements IDiagnostics
     /** @var string */
     private $locale = '';
 
-    /** @var array */
+    /** @var array<string> */
     private $messages = [];
 
-    /** @var array */
+    /** @var array<string> */
     private $untranslated = [];
 
     /**
@@ -43,7 +43,7 @@ class Diagnostics implements IDiagnostics
     }
 
     /**
-     * @return array
+     * @return array<string>
      */
     public function getUntranslated(): array
     {
@@ -51,7 +51,7 @@ class Diagnostics implements IDiagnostics
     }
 
     /**
-     * @return array
+     * @return array<string>
      */
     public function getWarnings(): array
     {

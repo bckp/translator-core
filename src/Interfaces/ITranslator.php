@@ -27,7 +27,7 @@ interface ITranslator
     public function setNormalizeCallback(callable $callback): void;
 
     /**
-     * @param array|string|object $message
+     * @param array<string,int>|string|object $message
      * @param mixed ...$params
      * @return string
      */

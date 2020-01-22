@@ -45,7 +45,7 @@ class Catalogue
     /** @var ICatalogue|null */
     private $catalogue;
 
-    /** @var array */
+    /** @var array<string> */
     private $collection = [];
 
     /** @var bool */
@@ -63,7 +63,7 @@ class Catalogue
     /** @var PluralProvider */
     private $plural;
 
-    /** @var array */
+    /** @var array<array<string>> */
     private $dynamic = [];
 
     /**
@@ -96,7 +96,7 @@ class Catalogue
 
     /**
      * @param string $resource
-     * @param array $data
+     * @param array<string> $data
      * @return static
      */
     public function addDynamic(string $resource, array $data): self
@@ -222,7 +222,7 @@ class Catalogue
     /**
      * Get all messages
      *
-     * @return array
+     * @return string[]
      * @throws FileInvalidException
      */
     protected function getMessages(): array
@@ -251,7 +251,7 @@ class Catalogue
 
     /**
      * @param string $file
-     * @return array
+     * @return string[]
      * @throws PathInvalidException
      * @throws FileInvalidException
      */

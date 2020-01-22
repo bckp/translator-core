@@ -31,7 +31,7 @@ class TranslatorProvider
     /** @var IDiagnostics|null */
     protected $diagnostics = null;
 
-    /** @var array */
+    /** @var string[] */
     protected $languages = [];
 
     /** @var ITranslator[] */
@@ -40,7 +40,7 @@ class TranslatorProvider
     /**
      * TranslatorProvider constructor.
      *
-     * @param array $languages
+     * @param string[] $languages
      * @param IDiagnostics|null $diagnostics
      */
     public function __construct(array $languages, IDiagnostics $diagnostics = null)
