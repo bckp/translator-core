@@ -63,6 +63,9 @@ class Catalogue
     /** @var PluralProvider */
     private $plural;
 
+    /** @var array */
+    private $dynamic = [];
+
     /**
      * Catalogue constructor.
      *
@@ -89,6 +92,47 @@ class Catalogue
     {
         $this->collection[] = $file;
         return $this;
+    }
+
+    /**
+     * @param string $resource
+     * @param array $data
+     * @return static
+     */
+    public function addDynamic(string $resource, array $data): self
+    {
+        $this->dynamic[$resource] = $data;
+        return $this;
+    }
+
+    /**
+     * @param int $attempt
+     * @return ICatalogue
+     * @throws Throwable
+     */
+    public function rebuild(int $attempt = 0): ICatalogue
+    {
+        $filename = $this->path . '/' . $this->getName() . '.php';
+        $this->unlink($filename);
+        return $this->compile($attempt);
+    }
+
+    /**
+     * @return string
+     */
+    protected function getName(): string
+    {
+        return $this->locale . 'Catalogue';
+    }
+
+    /**
+     * @param string $filename
+     */
+    private function unlink(string $filename): void
+    {
+        /** @scrutinizer ignore-unhandled */
+        @unlink($filename); // @ intentionally as file may not exists
+        $this->loaded = false;
     }
 
     /**
@@ -133,26 +177,6 @@ class Catalogue
             $this->unlink($filename);
             return $this->compile(++$rebuild);
         }
-    }
-
-    /**
-     * @return string
-     */
-    public function getLocale(): string
-    {
-        return $this->locale;
-    }
-
-    /**
-     * Enable debug mode
-     *
-     * @param bool $debug
-     * @return static
-     */
-    public function setDebugMode(bool $debug): self
-    {
-        $this->debug = $debug;
-        return $this;
     }
 
     /**
@@ -204,23 +228,25 @@ class Catalogue
     protected function getMessages(): array
     {
         $messages = [];
+
+        // Add files
         foreach ($this->collection as $file) {
             $info = new \SplFileInfo($file);
-            $resource = $info->getBasename('.' . $this->locale . '.neon');
+            $resource = strtolower($info->getBasename('.' . $this->locale . '.neon'));
             foreach ($this->loadFile($file) as $key => $item) {
                 $messages[$resource . '.' . $key] = $item;
             }
         }
 
-        return $messages;
-    }
+        // Add dynamic translations
+        foreach ($this->dynamic as $resource => $data) {
+            $resource = strtolower($resource);
+            foreach ($data as $key => $item) {
+                $messages[$resource . '.' . $key] = $item;
+            }
+        }
 
-    /**
-     * @return string
-     */
-    protected function getName(): string
-    {
-        return $this->locale . 'Catalogue';
+        return $messages;
     }
 
     /**
@@ -256,6 +282,14 @@ class Catalogue
     }
 
     /**
+     * @return string
+     */
+    public function getLocale(): string
+    {
+        return $this->locale;
+    }
+
+    /**
      * Link catalogue if not already linked
      *
      * @param string $filename
@@ -273,12 +307,14 @@ class Catalogue
     }
 
     /**
-     * @param string $filename
+     * Enable debug mode
+     *
+     * @param bool $debug
+     * @return static
      */
-    private function unlink(string $filename): void
+    public function setDebugMode(bool $debug): self
     {
-        /** @scrutinizer ignore-unhandled */
-        @unlink($filename); // @ intentionally as file may not exists
-        $this->loaded = false;
+        $this->debug = $debug;
+        return $this;
     }
 }
