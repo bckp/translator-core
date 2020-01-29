@@ -35,6 +35,8 @@ use function strtolower;
 use function uniqid;
 use function unlink;
 
+use const PHP_VERSION_ID;
+
 /**
  * Class Catalogue
  *
@@ -42,11 +44,20 @@ use function unlink;
  */
 class Catalogue
 {
+    /** @var array<callable> */
+    public $onCompile = [];
+
+    /** @var array<callable> */
+    public $onCheck = [];
+
     /** @var ICatalogue|null */
     private $catalogue;
 
     /** @var array<string> */
     private $collection = [];
+
+    /** @var array<callable> */
+    private $dynamic = [];
 
     /** @var bool */
     private $debug;
@@ -62,9 +73,6 @@ class Catalogue
 
     /** @var PluralProvider */
     private $plural;
-
-    /** @var array<array<string>> */
-    private $dynamic = [];
 
     /**
      * Catalogue constructor.
@@ -96,12 +104,12 @@ class Catalogue
 
     /**
      * @param string $resource
-     * @param array<string> $data
+     * @param callable $callback
      * @return static
      */
-    public function addDynamic(string $resource, array $data): self
+    public function addDynamic(string $resource, callable $callback): self
     {
-        $this->dynamic[$resource] = $data;
+        $this->dynamic[strtolower($resource)] = $callback;
         return $this;
     }
 
@@ -166,6 +174,8 @@ class Catalogue
                         throw new BuilderException('Rebuild required');
                     }
                 }
+
+                $this->onCheck($cacheTime);
             }
 
             $this->link($filename);
@@ -188,19 +198,24 @@ class Catalogue
     {
         // Load messages, then generate code
         $messages = $this->getMessages();
+        $this->onCompile($messages);
+
         do {
             $className = $this->getName() . uniqid();
         } while (class_exists($className));
+
         // File
         $file = new PhpFile();
         $file->setStrictTypes(true);
         $file->setComment('This file was auto-generated');
+
         // Create class
         $file->addUse('Bckp\Translator\PluralProvider');
         $class = $file->addClass($className);
         $class->setExtends(\Bckp\Translator\Catalogue::class);
         $class->setImplements([ICatalogue::class]);
         $class->addComment("This file was auto-generated");
+
         // Setup plural method
         $method = $class->addMethod('plural');
         $plural = Method::from((array)$this->plural->getPlural($this->locale));
@@ -209,12 +224,23 @@ class Catalogue
         $method->setBody('return PluralProvider::?($?);', [$plural->getName(), key($parameters)]);
         $method->setReturnNullable($plural->isReturnNullable());
         $method->setReturnType($plural->getReturnType());
+
         // Messages & build time
         $class->addProperty('locale', $this->getLocale())->setVisibility('protected');
         $class->addProperty('build', time())->setVisibility('protected');
         $class->addProperty('messages', $messages)->setStatic(true)->setVisibility('protected');
+
+        // PHP 7.4 modification
+        if (PHP_VERSION_ID >= 70400) {
+            $class->getProperty('locale')->setInitialized()->setType('string');
+            $class->getProperty('build')->setInitialized()->setType('int');
+            $class->getProperty('messages')->setInitialized()->setType('array');
+        }
+
+        // Generate code
         $code = (string)$file;
         $code .= "\nreturn new {$class->getName()};\n";
+
         // Return string
         return $code;
     }
@@ -239,9 +265,13 @@ class Catalogue
         }
 
         // Add dynamic translations
-        foreach ($this->dynamic as $resource => $data) {
+        foreach ($this->dynamic as $resource => $callback) {
             $resource = strtolower($resource);
-            foreach ($data as $key => $item) {
+            $array = [];
+
+            $callback($array, $resource, $this->locale);
+
+            foreach ($array as $key => $item) {
                 $messages[$resource . '.' . $key] = $item;
             }
         }
@@ -282,11 +312,33 @@ class Catalogue
     }
 
     /**
+     * Occurs when new catalogue is compiled, after all strings are loaded
+     * @param &$messages
+     */
+    private function onCompile(&$messages): void
+    {
+        foreach ($this->onCompile as $callback) {
+            $callback($messages, $this->locale);
+        }
+    }
+
+    /**
      * @return string
      */
     public function getLocale(): string
     {
         return $this->locale;
+    }
+
+    /**
+     * Occurs on debug mode in check for changes
+     * @param int $fileTime
+     */
+    private function onCheck(int $fileTime): void
+    {
+        foreach ($this->onCheck as $callback) {
+            $callback($fileTime, $this->locale);
+        }
     }
 
     /**
@@ -304,6 +356,22 @@ class Catalogue
         /** @noinspection PhpIncludeInspection */
         $this->catalogue = include $filename;
         $this->loaded = true;
+    }
+
+    /**
+     * @param callable $callback function(array &$messages, string $locale): void
+     */
+    public function addCompileCallback(callable $callback): void
+    {
+        $this->onCompile[] = $callback;
+    }
+
+    /**
+     * @param callable $callback function(string $locale): void
+     */
+    public function addCheckCallback(callable $callback): void
+    {
+        $this->onCheck[] = $callback;
     }
 
     /**
