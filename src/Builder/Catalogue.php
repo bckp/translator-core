@@ -264,6 +264,7 @@ class Catalogue
 
             $callback($array, $resource, $this->locale);
 
+            // @phpstan-ignore-next-line
             foreach ($array as $key => $item) {
                 $messages[$resource . '.' . $key] = $item;
             }
@@ -306,7 +307,7 @@ class Catalogue
 
     /**
      * Occurs when new catalogue is compiled, after all strings are loaded
-     * @param &$messages
+     * @param array<array<string>|string> $messages
      */
     private function onCompile(&$messages): void
     {

@@ -47,7 +47,7 @@ jobs:
       install:
         - travis_retry composer install --no-progress --prefer-dist
       script:
-        - vendor/bin/phpstan.phar analyse --level 7 src
+        - vendor/bin/phpstan.phar analyse --level 8 src
 
 
     - stage: Code Coverage
