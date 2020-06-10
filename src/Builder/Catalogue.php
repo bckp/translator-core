@@ -230,13 +230,6 @@ class Catalogue
         $class->addProperty('build', time())->setVisibility('protected');
         $class->addProperty('messages', $messages)->setStatic(true)->setVisibility('protected');
 
-        // PHP 7.4 modification
-        if (PHP_VERSION_ID >= 70400) {
-            $class->getProperty('locale')->setInitialized()->setType('string');
-            $class->getProperty('build')->setInitialized()->setType('int');
-            $class->getProperty('messages')->setInitialized()->setType('array');
-        }
-
         // Generate code
         $code = (string)$file;
         $code .= "\nreturn new {$class->getName()};\n";
