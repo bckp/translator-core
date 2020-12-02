@@ -12,7 +12,9 @@ Assert::type('callable', $provider->getPlural('cs'));
 Assert::type('callable', $provider->getPlural('en'));
 Assert::type('callable', $provider->getPlural('non-sense'));
 
+# Czech
 $plural = $provider->getPlural('cs');
+Assert::same('csPlural', $plural[1]);
 Assert::same(PluralProvider::csPlural(0), $plural(0));
 Assert::same(IPlural::ZERO, $plural(0));
 Assert::same(PluralProvider::csPlural(1), $plural(1));
@@ -28,7 +30,9 @@ Assert::same(IPlural::OTHER, $plural(5));
 Assert::same(PluralProvider::csPlural(-5), $plural(-5));
 Assert::same(IPlural::OTHER, $plural(-5));
 
+# English
 $plural = $provider->getPlural('en');
+Assert::same('enPlural', $plural[1]);
 Assert::same(PluralProvider::enPlural(0), $plural(0));
 Assert::same(IPlural::ZERO, $plural(0));
 Assert::same(PluralProvider::enPlural(1), $plural(1));
@@ -40,13 +44,18 @@ Assert::same(IPlural::OTHER, $plural(5));
 Assert::same(PluralProvider::enPlural(-5), $plural(-5));
 Assert::same(IPlural::OTHER, $plural(-5));
 
-$plural = $provider->getPlural('ja');
-Assert::same(PluralProvider::zeroPlural(0), $plural(0));
-Assert::same(IPlural::ZERO, $plural(0));
-Assert::same(PluralProvider::zeroPlural(5), $plural(5));
-Assert::same(IPlural::OTHER, $plural(5));
-Assert::same(PluralProvider::zeroPlural(-5), $plural(-5));
-Assert::same(IPlural::OTHER, $plural(-5));
+# Zero plural
+foreach(['id','ja','ka','ko','lo','ms','my','th','vi','zh'] as $lang) {
+    $plural = $provider->getPlural($lang);
+    Assert::type('callable', $plural);
+    Assert::same('zeroPlural', $plural[1]);
+    Assert::same(PluralProvider::zeroPlural(0), $plural(0));
+    Assert::same(IPlural::ZERO, $plural(0));
+    Assert::same(PluralProvider::zeroPlural(5), $plural(5));
+    Assert::same(IPlural::OTHER, $plural(5));
+    Assert::same(PluralProvider::zeroPlural(-5), $plural(-5));
+    Assert::same(IPlural::OTHER, $plural(-5));
+}
 
 # csPlural
 Assert::same(IPlural::ZERO, PluralProvider::csPlural(0));
