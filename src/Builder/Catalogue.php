@@ -259,14 +259,15 @@ class Catalogue
 
         // Add dynamic translations
         foreach ($this->dynamic as $resource => $callback) {
-            $resource = strtolower($resource);
+            $resource = $namespace = strtolower($resource);
+            $locale = $this->locale;
             $array = [];
 
-            $callback($array, $resource, $this->locale);
+            $callback($array, $resource, $locale);
 
             // @phpstan-ignore-next-line
             foreach ($array as $key => $item) {
-                $messages[$resource . '.' . $key] = $item;
+                $messages[$namespace . '.' . $key] = $item;
             }
         }
 
@@ -309,10 +310,11 @@ class Catalogue
      * Occurs when new catalogue is compiled, after all strings are loaded
      * @param array<array<string>|string> $messages
      */
-    private function onCompile(&$messages): void
+    private function onCompile(array &$messages): void
     {
         foreach ($this->onCompile as $callback) {
-            $callback($messages, $this->locale);
+            $locale = $this->locale;
+            $callback($messages, $locale);
         }
     }
 
@@ -331,7 +333,8 @@ class Catalogue
     private function onCheck(int $fileTime): void
     {
         foreach ($this->onCheck as $callback) {
-            $callback($fileTime, $this->locale);
+            $locale = $this->locale;
+            $callback($fileTime, $locale);
         }
     }
 

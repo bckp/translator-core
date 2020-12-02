@@ -4,6 +4,7 @@ php:
   - 7.2
   - 7.3
   - 7.4
+  - 8.0
 
 env:
   - PHP_BIN=php
@@ -17,7 +18,7 @@ install:
   - travis_retry composer install --no-progress --prefer-dist
 
 script:
-  - vendor/bin/tester -p $PHP_BIN tests -s
+  - travis_retry vendor/bin/tester -p $PHP_BIN tests -s
 
 after_failure:
   # Print *.actual content
