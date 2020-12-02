@@ -4,7 +4,6 @@ namespace Bckp\Translator;
 
 use Bckp\Translator\Builder\Catalogue;
 use Tester\Assert;
-use Tester\Environment;
 
 require __DIR__ . '/../bootstrap.php';
 $plural = (new PluralProvider());
@@ -13,7 +12,7 @@ const LOCALE = 'dynamic';
 const RESOURCE = 'test';
 
 $catalogue = new Catalogue($plural, TEMP_DIR, LOCALE);
-$catalogue->addDynamic(RESOURCE, function(array &$messages, string &$resource, string &$locale){
+$catalogue->addDynamic(RESOURCE, function (array &$messages, string &$resource, string &$locale) {
     # Verify callback is called properly
     Assert::equal($locale, LOCALE);
     Assert::equal($resource, RESOURCE);
@@ -27,7 +26,7 @@ $catalogue->addDynamic(RESOURCE, function(array &$messages, string &$resource, s
     $resource = RESOURCE . '3';
 });
 
-$catalogue->addCompileCallback(function(array &$messages, string $locale){
+$catalogue->addCompileCallback(function (array &$messages, string $locale) {
     Assert::equal('test', $messages[RESOURCE . '.string']);
     Assert::equal(LOCALE, $locale);
 

@@ -4,7 +4,6 @@ namespace Bckp\Translator;
 
 use Bckp\Translator\Builder\Catalogue;
 use Tester\Assert;
-use Tester\Environment;
 
 require __DIR__ . '/../bootstrap.php';
 $plural = (new PluralProvider());

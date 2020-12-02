@@ -19,7 +19,6 @@ use Bckp\Translator\FileInvalidException;
 use Bckp\Translator\ICatalogue;
 use Bckp\Translator\PathInvalidException;
 use Bckp\Translator\PluralProvider;
-use Bckp\Translator\RebuildException;
 use Nette\Neon\Neon;
 use Nette\PhpGenerator\Method;
 use Nette\PhpGenerator\PhpFile;
