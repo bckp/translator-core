@@ -91,18 +91,13 @@ class Translator implements ITranslator
             return '';
         }
 
-        // expand parameters
-        if (empty($parameters) && is_array($message) && is_numeric($message[1] ?? null)) {
-            $parameters[] = $message[1];
-        }
-
-        // get message and plural if any
         $form = null;
         $message = $this->getMessage($message, $form);
         if ($message === null) {
             return $this->warn('Expected string|array|object::__toString, but %s given.', gettype($message));
         }
         $result = $message;
+        $this->expandParameters($parameters, $message);
 
         // process plural if any
         if ($translation = $this->catalogue->get($message)) {
@@ -126,7 +121,7 @@ class Translator implements ITranslator
      * @param string|null $form
      * @return string
      */
-    protected function getVariant(string $message, $translation, string $form = null): string
+    private function getVariant(string $message, $translation, string $form = null): string
     {
         if (!is_array($translation)) {
             return $translation;
@@ -193,5 +188,20 @@ class Translator implements ITranslator
         }
 
         return $message;
+    }
+
+    /**
+     * @param array<mixed> $parameters
+     * @param string|array<string|int> $message
+     */
+    private function expandParameters(array &$parameters, $message): void
+    {
+        if (
+            empty($parameters)
+            && is_array($message)
+            && is_numeric($message[1] ?? null)
+        ) {
+            $parameters[] = $message[1];
+        }
     }
 }
