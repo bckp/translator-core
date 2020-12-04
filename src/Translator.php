@@ -14,7 +14,6 @@ declare(strict_types=1);
 
 namespace Bckp\Translator;
 
-use Nette\Utils\Strings;
 use function array_key_exists;
 use function end;
 use function gettype;
