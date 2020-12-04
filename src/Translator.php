@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 namespace Bckp\Translator;
 
+use Nette\Utils\Strings;
 use function array_key_exists;
 use function end;
 use function gettype;
@@ -63,7 +64,11 @@ class Translator implements ITranslator
      */
     public function normalize(string $string): string
     {
-        return (string)str_replace(['%label', '%value', '%name'], ['%%label', '%%value', '%%name'], $string);
+        return str_replace(
+            ['%label', '%value', '%name'],
+            ['%%label', '%%value', '%%name'],
+            $string
+        );
     }
 
     /**
@@ -82,9 +87,8 @@ class Translator implements ITranslator
      */
     public function translate($message, ...$parameters): string
     {
-        // html and empty are returned without processing
         if (empty($message)) {
-            return (string)$message;
+            return '';
         }
 
         // expand parameters
@@ -95,30 +99,14 @@ class Translator implements ITranslator
         // get message and plural if any
         $form = null;
         $message = $this->getMessage($message, $form);
-        // check message to be string
-        if (!is_string($message)) {
+        if ($message === null) {
             return $this->warn('Expected string|array|object::__toString, but %s given.', gettype($message));
         }
+        $result = $message;
 
         // process plural if any
-        $result = $message;
         if ($translation = $this->catalogue->get($message)) {
-            // plural
-            if (is_array($translation)) {
-                if (!array_key_exists($form, $translation) || $form === null) {
-                    $this->warn(
-                        'Plural form not defined. (message: %s, form: %s)',
-                        (string)$message,
-                        (string)$form
-                    );
-                    end($translation);
-                    $form = key($translation);
-                }
-
-                $result = $translation[$form];
-            } else {
-                $result = $translation;
-            }
+            $result = $this->getVariant($message, $translation, $form);
 
             if ($parameters) {
                 $result = ($this->normalizeCallback)($result);
@@ -130,6 +118,30 @@ class Translator implements ITranslator
         }
 
         return $result;
+    }
+
+    /**
+     * @param string $message
+     * @param string|array<string> $translation
+     * @param string|null $form
+     * @return string
+     */
+    protected function getVariant(string $message, $translation, string $form = null): string
+    {
+        if (!is_array($translation)) {
+            return $translation;
+        }
+
+        if ($form === null || !array_key_exists($form, $translation)) {
+            $this->warn(
+                'Plural form not defined. (message: %s, form: %s)',
+                (string)$message,
+                (string)$form
+            );
+            end($translation);
+            $form = key($translation);
+        }
+        return $translation[$form];
     }
 
     /**

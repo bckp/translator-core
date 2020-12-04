@@ -165,28 +165,39 @@ class Catalogue
 
         // Link file and rebuild if error
         try {
-            if ($this->debug) {
-                $cacheTime = (int)filemtime($filename);
-                foreach ($this->collection as $file) {
-                    $file = new \SplFileInfo($file);
-                    $fileTime = $file->getMTime();
-                    if ($fileTime > $cacheTime || ($this->catalogue && $fileTime > $this->catalogue->buildTime())) {
-                        throw new BuilderException('Rebuild required');
-                    }
-                }
-
-                $this->onCheck($cacheTime);
-            }
-
+            $this->checkForChanges($filename);
             $this->link($filename);
+
             if (!$this->catalogue instanceof ICatalogue) {
                 throw new BuilderException('Catalogue is not implementing ICatalogue');
             }
+
             return $this->catalogue;
         } catch (Throwable $e) {
             $this->unlink($filename);
             return $this->compile(++$rebuild);
         }
+    }
+
+    /**
+     * @param string $filename
+     */
+    protected function checkForChanges(string $filename): void
+    {
+        if (!$this->debug) {
+            return;
+        }
+
+        $cacheTime = (int)filemtime($filename);
+        foreach ($this->collection as $file) {
+            $file = new \SplFileInfo($file);
+            $fileTime = $file->getMTime();
+            if ($fileTime > $cacheTime || ($this->catalogue && $fileTime > $this->catalogue->buildTime())) {
+                throw new BuilderException('Rebuild required');
+            }
+        }
+
+        $this->onCheck($cacheTime);
     }
 
     /**
