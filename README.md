@@ -30,6 +30,43 @@ $translator->translate('messages.withArgs', 'Honza', 'poledne'); // Will output 
 $translator->translate('messages.withArgsRev', 'Honza', 'poledne'); // Will output "Krásné poledne, já jsem Honza"
 ```
 
+You can add your own source of text by callback
+
+```php
+$catalogue = new Catalogue(new PluralProvider(), './path/to/cache', 'cs');
+$catalogue->addDynamic('errors', function(array &$messages, string $resource, string $locale){
+    $messages['common'] = 'Common error translation';
+    $messages['critical'] = $this->database->fetchAll('translations')->where('resource = ? and locale = ?', $resource, $locale);
+});
+$catalogue->addFile('./path/to/locales/messages.cs.neon');
+// if you add new file errors.cs.neon, it will be overwritten by dynamic, as they is processed later
+
+// Enable debug mode, disabled by default
+$catalogue->setDebugMode(true);
+
+// You can even add events for onCheck
+// $timestamp contains timestamp of last file generation
+// but remember, this will called only on debug mode!
+$catalogue->addCheckCallback(function(int $timestamp){
+    if ($timestamp < $this->database->fetchSingle('select last_update from settings where caption = ?', 'translations')){
+        throw new BuilderException('rebuild required');
+    }
+});
+
+// And events for onCompile
+// this will occur when app have prepared all translations into single
+// big array, and you want to modify it
+$catalogue->addCompileCallback(function(array &$messages, string $locale){
+    // in messages, we have all the translations
+    $messages['errors.common'] = 'Modify common error translation';
+});
+
+$compiledCatalogue = $catalogue->compile();
+$translator = new Translator($compiledCatalogue);
+
+$translator->translate('errors.common'); // Will output "Modify common error translation"
+```
+
 Debug mode will made translator slower, it will check every time you call compile() if some of language files did change or not, and if they do, automaticly recompile cache, this is Good for development, but BAD on production mode.
 
 Or you can use TranslatorProvider
