@@ -24,6 +24,11 @@ use function strtolower;
 final class PluralProvider implements IPlural
 {
     /**
+     * Default plural provider
+     */
+    public const DEFAULT = 'enPlural';
+
+    /**
      * Plural provider
      * @var string[]
      */
@@ -101,9 +106,9 @@ final class PluralProvider implements IPlural
         $locale = strtolower($locale);
         $callable = [$this, $this->plurals[$locale] ?? null];
 
-        if (is_callable($callable)) {
+        if ($callable[1] && is_callable($callable)) {
             return $callable;
         }
-        return [$this, 'enPlural'];
+        return [$this, self::DEFAULT];
     }
 }
