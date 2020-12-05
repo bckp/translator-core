@@ -24,15 +24,46 @@ use function strtolower;
 final class PluralProvider implements IPlural
 {
     /**
+     * Default plural provider
+     */
+    public const DEFAULT = 'enPlural';
+
+    /**
+     * Plural provider
+     * @var string[]
+     */
+    private $plurals = [
+        'cs' => 'csPlural',
+        'en' => 'enPlural',
+        'id' => 'zeroPlural',
+        'ja' => 'zeroPlural',
+        'ka' => 'zeroPlural',
+        'ko' => 'zeroPlural',
+        'lo' => 'zeroPlural',
+        'ms' => 'zeroPlural',
+        'my' => 'zeroPlural',
+        'th' => 'zeroPlural',
+        'vi' => 'zeroPlural',
+        'zh' => 'zeroPlural',
+    ];
+
+    /**
      * Czech plural selector (zero-one-few-other)
      *
-     * @param int $n
+     * @param int|null $n
      * @return string
      */
     public static function csPlural(?int $n): string
     {
-        return
-            $n === 0 ? IPlural::ZERO : ($n === 1 ? IPlural::ONE : ($n >= 2 && $n < 5 ? IPlural::FEW : IPlural::OTHER));
+        return $n === 0
+            ? IPlural::ZERO
+            : ($n === 1
+                ? IPlural::ONE
+                : ($n >= 2 && $n < 5
+                    ? IPlural::FEW
+                    : IPlural::OTHER
+                )
+            );
     }
 
     /**
@@ -43,45 +74,41 @@ final class PluralProvider implements IPlural
      */
     public static function enPlural(?int $n): string
     {
-        return ($n === 0 ? IPlural::ZERO : ($n === 1 ? IPlural::ONE : IPlural::OTHER));
+        return $n === 0
+            ? IPlural::ZERO
+            : ($n === 1
+                ? IPlural::ONE
+                : IPlural::OTHER
+            );
     }
 
     /**
      * No plural detector (zero-other)
      *
-     * @param int $n
+     * @param int|null $n
      * @return string
      */
     public static function zeroPlural(?int $n): string
     {
-        return ($n === 0 ? IPlural::ZERO : IPlural::OTHER);
+        return $n === 0
+            ? IPlural::ZERO
+            : IPlural::OTHER;
     }
 
     /**
      * Get plural method
      *
      * @param string $locale
-     * @return callable
+     * @return callable(int|null $n): string
      */
     public function getPlural(string $locale): callable
     {
-        switch (strtolower($locale)) {
-            default:
-                return [$this, 'enPlural'];
-            case 'id':
-            case 'ja':
-            case 'ka':
-            case 'ko':
-            case 'lo':
-            case 'ms':
-            case 'my':
-            case 'th':
-            case 'vi':
-            case 'zh':
-                return [$this, 'zeroPlural'];
-            case 'cs':
-                return [$this, 'csPlural'];
-            //TODO: Add other languages plural selectors
+        $locale = strtolower($locale);
+        $callable = [$this, $this->plurals[$locale] ?? null];
+
+        if ($callable[1] && is_callable($callable)) {
+            return $callable;
         }
+        return [$this, self::DEFAULT];
     }
 }
