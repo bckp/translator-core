@@ -1,9 +1,13 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Bckp\Translator;
 
 use Tester\Environment;
+
 use function lcg_value;
+
 use const TEMP_DIR;
 
 require __DIR__ . '/../vendor/autoload.php';

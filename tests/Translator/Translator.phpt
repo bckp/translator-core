@@ -19,7 +19,7 @@ $provider->addCatalogue('hu', (new Catalogue($plural, TEMP_DIR, 'hu')));
 
 // Test object
 $string = new class {
-    public function __toString()
+    public function __toString(): string
     {
         return 'test.welcome';
     }
@@ -44,6 +44,7 @@ Assert::equal('test.blank', $translator->translate('test.blank'), 'Translation i
 Assert::equal('Expected string|array|object::__toString, but NULL given.', $translator->translate($nonString));
 Assert::equal('zapnuto', $translator->translate('test.options'));
 Assert::equal('zapnuto', $translator->translate(['test.options', 7]));
+Assert::equal('5 lidí', $translator->translate(['test.plural', 5]));
 
 // en translator
 $translator = $provider->getTranslator('en');

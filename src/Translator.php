@@ -91,12 +91,13 @@ class Translator implements ITranslator
         }
 
         $form = null;
+
+        $this->expandParameters($parameters, $message);
         $message = $this->getMessage($message, $form);
         if ($message === null) {
             return $this->warn('Expected string|array|object::__toString, but %s given.', gettype($message));
         }
         $result = $message;
-        $this->expandParameters($parameters, $message);
 
         // process plural if any
         if ($translation = $this->catalogue->get($message)) {
@@ -191,7 +192,7 @@ class Translator implements ITranslator
 
     /**
      * @param array<mixed> $parameters
-     * @param string|array<string|int> $message
+     * @param string|array<int|string>|object $message
      */
     private function expandParameters(array &$parameters, $message): void
     {
