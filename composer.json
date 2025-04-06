@@ -1,29 +1,35 @@
 {
-	"name": "bckp/translator-core",
-	"description": "Simple and fast PHP translator",
-	"keywords": ["translator"],
-	"homepage": "https://github.com/bckp/translator-core",
-	"license": "BSD-3-Clause",
-	"authors": [
-		{
-			"name": "Radovan Kepák",
-			"homepage": "https://kepak.eu"
-		}
-	],
-	"require": {
-		"php": "^7.1|^8.0",
-		"nette/php-generator": ">3.3 <4",
-		"nette/neon": ">=2.4"
-	},
-	"suggest": {
-		"bckp/translator-nette": "For NETTE support"
-	},
-	"autoload": {
-		"classmap": ["src/"]
-	},
-	"require-dev": {
-		"squizlabs/php_codesniffer": "*",
-		"phpstan/phpstan": "^0.12",
-		"nette/tester": "^2.3"
-	}
+  "name": "bckp/translator-core",
+  "description": "Simple and fast PHP translator",
+  "keywords": [
+    "translator"
+  ],
+  "homepage": "https://github.com/bckp/translator-core",
+  "license": "BSD-3-Clause",
+  "authors": [
+    {
+      "name": "Radovan Kepák",
+      "homepage": "https://kepak.dev"
+    }
+  ],
+  "require": {
+    "php": "^8.2",
+    "nette/php-generator": ">=4 <5",
+    "nette/neon": ">3.3 <4"
+  },
+  "suggest": {
+    "bckp/translator-nette": "For NETTE support"
+  },
+  "autoload": {
+    "classmap": [
+      "src/"
+    ]
+  },
+  "require-dev": {
+    "roave/security-advisories": "dev-latest",
+    "squizlabs/php_codesniffer": "*",
+    "phpstan/phpstan": "^2",
+    "nette/utils": "^4.0",
+    "nette/tester": "^2.5"
+  }
 }

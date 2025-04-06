@@ -12,16 +12,17 @@
 
 declare(strict_types=1);
 
-namespace Bckp\Translator\Builder;
+namespace Bckp\Translator;
 
-use Bckp\Translator\BuilderException;
-use Bckp\Translator\FileInvalidException;
-use Bckp\Translator\ICatalogue;
-use Bckp\Translator\PathInvalidException;
-use Bckp\Translator\PluralProvider;
+use Bckp\Translator\Exceptions\BuilderException;
+use Bckp\Translator\Exceptions\FileInvalidException;
+use Bckp\Translator\Exceptions\PathInvalidException;
 use Nette\Neon\Neon;
+use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\Method;
 use Nette\PhpGenerator\PhpFile;
+use RuntimeException;
+use SplFileInfo;
 use Throwable;
 
 use function class_exists;
@@ -32,81 +33,47 @@ use function filemtime;
 use function is_readable;
 use function is_writable;
 use function strtolower;
-use function uniqid;
 use function unlink;
 
-use const PHP_VERSION_ID;
-
-/**
- * Class Catalogue
- *
- * @package Bckp\Translator\Builder
- */
-class Catalogue
+final class CatalogueBuilder
 {
-    /** @var array<callable> */
-    public $onCompile = [];
+    /** @var callable[] */
+    public array $onCompile = [];
 
-    /** @var array<callable> */
-    public $onCheck = [];
+    /** @var callable[] */
+    public array $onCheck = [];
 
-    /** @var ICatalogue|null */
-    private $catalogue;
+    /** @var callable[] */
+    private array $dynamic = [];
+
+    private ?Catalogue $catalogue = null;
 
     /** @var array<string> */
-    private $collection = [];
+    private array $collection = [];
 
-    /** @var array<callable> */
-    private $dynamic = [];
+    private bool $debug = false;
+    private bool $loaded = false;
+    private readonly string $locale;
 
-    /** @var bool */
-    private $debug;
 
-    /** @var bool */
-    private $loaded = false;
-
-    /** @var string */
-    private $locale;
-
-    /** @var string */
-    private $path;
-
-    /** @var PluralProvider */
-    private $plural;
-
-    /**
-     * Catalogue constructor.
-     *
-     * @param PluralProvider $plural
-     * @param string $path
-     * @param string $locale
-     */
-    public function __construct(PluralProvider $plural, string $path, string $locale)
-    {
+    public function __construct(
+        private readonly PluralProvider $plural,
+        private readonly string $path,
+        string $locale
+    ) {
         if (!is_writable($path)) {
-            throw new PathInvalidException("Path '{$path}' is not writable.");
+            throw new PathInvalidException("Path '$path' is not writable.");
         }
 
-        $this->path = $path;
-        $this->plural = $plural;
         $this->locale = strtolower($locale);
     }
 
-    /**
-     * @param string $file
-     * @return static
-     */
     public function addFile(string $file): self
     {
         $this->collection[] = $file;
         return $this;
     }
 
-    /**
-     * @param string $resource
-     * @param callable $callback
-     * @return static
-     */
     public function addDynamic(string $resource, callable $callback): self
     {
         $this->dynamic[strtolower($resource)] = $callback;
@@ -114,11 +81,9 @@ class Catalogue
     }
 
     /**
-     * @param int $attempt
-     * @return ICatalogue
      * @throws Throwable
      */
-    public function rebuild(int $attempt = 0): ICatalogue
+    public function rebuild(int $attempt = 0): Catalogue
     {
         $filename = $this->path . '/' . $this->getName() . '.php';
         $this->unlink($filename);
@@ -139,18 +104,14 @@ class Catalogue
     private function unlink(string $filename): void
     {
         /** @scrutinizer ignore-unhandled */
-        @unlink($filename); // @ intentionally as file may not exists
+        @unlink($filename); // @ intentionally as file may not exist
         $this->loaded = false;
     }
 
     /**
-     * Compile catalogue (or load from cache if exists)
-     *
-     * @param int $rebuild
-     * @return ICatalogue
-     * @throws Throwable
+     * @throws BuilderException
      */
-    public function compile(int $rebuild = 0): ICatalogue
+    public function compile(int $rebuild = 0): Catalogue
     {
         // Exception on to many rebuild try
         if ($rebuild > 3) {
@@ -168,8 +129,8 @@ class Catalogue
             $this->checkForChanges($filename);
             $this->link($filename);
 
-            if (!$this->catalogue instanceof ICatalogue) {
-                throw new BuilderException('Catalogue is not implementing ICatalogue');
+            if (!$this->catalogue instanceof Catalogue) {
+                throw new BuilderException('Catalogue is not implementing Catalogue');
             }
 
             return $this->catalogue;
@@ -190,9 +151,9 @@ class Catalogue
 
         $cacheTime = (int)filemtime($filename);
         foreach ($this->collection as $file) {
-            $file = new \SplFileInfo($file);
+            $file = new SplFileInfo($file);
             $fileTime = $file->getMTime();
-            if ($fileTime > $cacheTime || ($this->catalogue && $fileTime > $this->catalogue->buildTime())) {
+            if ($fileTime > $cacheTime || ($this->catalogue && $fileTime > $this->catalogue->build())) {
                 throw new BuilderException('Rebuild required');
             }
         }
@@ -211,39 +172,39 @@ class Catalogue
         $messages = $this->getMessages();
         $this->onCompile($messages);
 
+/*
         do {
-            $className = $this->getName() . uniqid();
+            $className = $this->getName() . substr(md5((string) mt_rand()), 4, 8);
         } while (class_exists($className));
+*/
 
         // File
         $file = new PhpFile();
-        $file->setStrictTypes(true);
+        $file->setStrictTypes();
         $file->setComment('This file was auto-generated');
 
-        // Create class
-        $file->addUse('Bckp\Translator\PluralProvider');
-        $class = $file->addClass($className);
-        $class->setExtends(\Bckp\Translator\Catalogue::class);
-        $class->setImplements([ICatalogue::class]);
-        $class->addComment("This file was auto-generated");
+        $class = new ClassType();
+        //$class = $file->addClass($className);
+        $class->setExtends(Catalogue::class);
+        //$class->addComment("This file was auto-generated");
 
         // Setup plural method
         $method = $class->addMethod('plural');
         $plural = Method::from((array)$this->plural->getPlural($this->locale));
         $method->setParameters($plural->getParameters());
         $parameters = $method->getParameters();
-        $method->setBody('return PluralProvider::?($?);', [$plural->getName(), key($parameters)]);
+        $method->setBody('return Bckp\Translator\PluralProvider::?($?);', [$plural->getName(), key($parameters)]);
         $method->setReturnNullable($plural->isReturnNullable());
         $method->setReturnType($plural->getReturnType());
 
         // Messages & build time
-        $class->addProperty('locale', $this->getLocale())->setVisibility('protected');
-        $class->addProperty('build', time())->setVisibility('protected');
-        $class->addProperty('messages', $messages)->setStatic(true)->setVisibility('protected');
+        $class->addMethod('locale')->setBody("return '{$this->getLocale()}';")->setReturnType('string');
+        $class->addMethod('build')->setBody('return ' . time() . ';')->setReturnType('int');
+        $class->addProperty('messages', $messages)->setType('array')->setStatic()->setVisibility('protected');
 
         // Generate code
         $code = (string)$file;
-        $code .= "\nreturn new {$class->getName()};\n";
+        $code .= "\nreturn new class {$class};\n";
 
         // Return string
         return $code;
@@ -261,7 +222,7 @@ class Catalogue
 
         // Add files
         foreach ($this->collection as $file) {
-            $info = new \SplFileInfo($file);
+            $info = new SplFileInfo($file);
             $resource = strtolower($info->getBasename('.' . $this->locale . '.neon'));
             foreach ($this->loadFile($file) as $key => $item) {
                 $messages[$resource . '.' . $key] = $item;
@@ -294,7 +255,7 @@ class Catalogue
     protected function loadFile(string $file): array
     {
         if (!file_exists($file) || !is_readable($file)) {
-            throw new PathInvalidException("File '{$file}' not found or is not readable.");
+            throw new PathInvalidException("File '$file' not found or is not readable.");
         }
 
         $content = file_get_contents($file);
@@ -305,11 +266,11 @@ class Catalogue
         try {
             $content = Neon::decode($content);
             if (!is_array($content)) {
-                throw new \Exception('No array');
+                throw new RuntimeException('No array');
             }
         } catch (Throwable $e) {
             throw new FileInvalidException(
-                "File '{$file}' do not contain array of translations",
+                "File '$file' do not contain array of translations",
                 $e->getCode(),
                 $e
             );
@@ -329,18 +290,11 @@ class Catalogue
         }
     }
 
-    /**
-     * @return string
-     */
     public function getLocale(): string
     {
         return $this->locale;
     }
 
-    /**
-     * Occurs on debug mode in check for changes
-     * @param int $fileTime
-     */
     private function onCheck(int $fileTime): void
     {
         foreach ($this->onCheck as $callback) {
@@ -361,8 +315,7 @@ class Catalogue
             return;
         }
 
-        /** @noinspection PhpIncludeInspection */
-        $this->catalogue = include $filename;
+        $this->catalogue = require $filename;
         $this->loaded = true;
     }
 
@@ -382,12 +335,6 @@ class Catalogue
         $this->onCheck[] = $callback;
     }
 
-    /**
-     * Enable debug mode
-     *
-     * @param bool $debug
-     * @return static
-     */
     public function setDebugMode(bool $debug): self
     {
         $this->debug = $debug;

@@ -16,23 +16,10 @@ namespace Bckp\Translator;
 
 use function strtolower;
 
-/**
- * Class PluralProvider
- *
- * @package Bckp\Translator
- */
-final class PluralProvider implements IPlural
+final class PluralProvider
 {
-    /**
-     * Default plural provider
-     */
-    public const DEFAULT = 'enPlural';
-
-    /**
-     * Plural provider
-     * @var string[]
-     */
-    private $plurals = [
+    public const Default = 'enPlural';
+    private array $plurals = [
         'cs' => 'csPlural',
         'en' => 'enPlural',
         'id' => 'zeroPlural',
@@ -49,50 +36,37 @@ final class PluralProvider implements IPlural
 
     /**
      * Czech plural selector (zero-one-few-other)
-     *
-     * @param int|null $n
-     * @return string
      */
-    public static function csPlural(?int $n): string
+    public static function csPlural(?int $n): Plural
     {
-        return $n === 0
-            ? IPlural::ZERO
-            : ($n === 1
-                ? IPlural::ONE
-                : ($n >= 2 && $n < 5
-                    ? IPlural::FEW
-                    : IPlural::OTHER
-                )
-            );
+        return match (true) {
+            $n === 0 => Plural::Zero,
+            $n === 1 => Plural::One,
+            $n >= 2 && $n <= 4 => Plural::Few,
+            default => Plural::Other,
+        };
     }
 
     /**
      * Default plural detector (zero-one-other)
-     *
-     * @param int|null $n
-     * @return string
      */
-    public static function enPlural(?int $n): string
+    public static function enPlural(?int $n): Plural
     {
-        return $n === 0
-            ? IPlural::ZERO
-            : ($n === 1
-                ? IPlural::ONE
-                : IPlural::OTHER
-            );
+        return match (true) {
+            $n === 0 => Plural::Zero,
+            $n === 1 => Plural::One,
+            default => Plural::Other,
+        };
     }
 
     /**
      * No plural detector (zero-other)
-     *
-     * @param int|null $n
-     * @return string
      */
-    public static function zeroPlural(?int $n): string
+    public static function zeroPlural(?int $n): Plural
     {
         return $n === 0
-            ? IPlural::ZERO
-            : IPlural::OTHER;
+            ? Plural::Zero
+            : Plural::Other;
     }
 
     /**
@@ -109,6 +83,6 @@ final class PluralProvider implements IPlural
         if ($callable[1] && is_callable($callable)) {
             return $callable;
         }
-        return [$this, self::DEFAULT];
+        return [$this, self::Default];
     }
 }

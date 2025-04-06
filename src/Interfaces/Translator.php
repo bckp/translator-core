@@ -12,24 +12,21 @@
 
 declare(strict_types=1);
 
-namespace Bckp\Translator;
+namespace Bckp\Translator\Interfaces;
+
+use Stringable;
 
 /**
  * Interface ITranslator
  *
  * @package Bckp\Translator
  */
-interface ITranslator
+interface Translator
 {
     /**
      * @param callable $callback function(string $string): string
      */
     public function setNormalizeCallback(callable $callback): void;
 
-    /**
-     * @param array<int|string>|string|object $message
-     * @param mixed ...$params
-     * @return string
-     */
-    public function translate($message, ...$params): string;
+    public function translate(string|Stringable $message, mixed ...$params): string;
 }

@@ -14,58 +14,36 @@ declare(strict_types=1);
 
 namespace Bckp\Translator;
 
-use Bckp\Translator\Builder\Catalogue as BuilderCatalogue;
-
+use Bckp\Translator\Exceptions\BuilderException;
+use Bckp\Translator\Exceptions\TranslatorException;
 use function strtolower;
 
-/**
- * Class TranslatorProvider
- *
- * @package Bckp\Translator
- */
 class TranslatorProvider
 {
-    /** @var BuilderCatalogue[] */
-    protected $catalogues = [];
-
-    /** @var IDiagnostics|null */
-    protected $diagnostics = null;
-
-    /** @var string[] */
-    protected $languages = [];
-
-    /** @var ITranslator[] */
-    protected $translators = [];
+    /**
+     * @var array<string, CatalogueBuilder>
+     */
+    protected array $catalogues = [];
 
     /**
-     * TranslatorProvider constructor.
-     *
-     * @param string[] $languages
-     * @param IDiagnostics|null $diagnostics
+     * @var array<string, Interfaces\Translator>
      */
-    public function __construct(array $languages, IDiagnostics $diagnostics = null)
-    {
-        $this->diagnostics = $diagnostics;
-        $this->languages = $languages;
+    protected array $translators = [];
+
+    public function __construct(
+        protected array $languages,
+        protected ?Interfaces\Diagnostics $diagnostics = null
+    ) {
     }
 
-    /**
-     * @param string $locale
-     * @param BuilderCatalogue $builder
-     * @return void
-     */
-    public function addCatalogue(string $locale, BuilderCatalogue $builder): void
-    {
-        $locale = strtolower($locale);
-        $this->catalogues[$locale] = $builder;
+    public function addCatalogue(
+        string $locale,
+        CatalogueBuilder $builder
+    ): void {
+        $this->catalogues[strtolower($locale)] = $builder;
     }
 
-    /**
-     * @param string $locale
-     * @return ITranslator
-     * @throws \Throwable
-     */
-    public function getTranslator(string $locale): ITranslator
+    public function getTranslator(string $locale): Interfaces\Translator
     {
         $locale = strtolower($locale);
         if (!isset($this->translators[$locale])) {
@@ -76,16 +54,17 @@ class TranslatorProvider
     }
 
     /**
-     * @param string $locale
-     * @return ITranslator
-     * @throws \Throwable
+     * @throws BuilderException
      */
-    protected function createTranslator(string $locale): ITranslator
+    protected function createTranslator(string $locale): Interfaces\Translator
     {
         if (!isset($this->catalogues[$locale])) {
             throw new TranslatorException("Language {$locale} requested, but corresponding catalogue missing.");
         }
 
-        return new Translator($this->catalogues[$locale]->compile(), $this->diagnostics);
+        return new Translator(
+            $this->catalogues[$locale]->compile(),
+            $this->diagnostics
+        );
     }
 }

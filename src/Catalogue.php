@@ -19,62 +19,25 @@ namespace Bckp\Translator;
  *
  * @package Bckp\Translator
  */
-abstract class Catalogue implements ICatalogue
+abstract class Catalogue
 {
     /** @var array<string|array> */
-    protected static $messages;
-
-    /** @var int */
-    protected $build;
-
-    /** @var string */
-    protected $locale;
+    protected static array $messages;
 
     /**
-     * Get build time
-     *
-     * @return int
+     * @return string|string[]
      */
-    public function buildTime(): int
-    {
-        return $this->build;
-    }
-
-    /**
-     * Get the message translation
-     *
-     * @param string $message
-     * @return string|array<string> return array if plural is detected
-     */
-    public function get(string $message)
+    public function get(string $message): array|string
     {
         return static::$messages[$message] ?? '';
     }
 
-    /**
-     * Check if catalogue has message translation
-     *
-     * @param string $message
-     * @return bool
-     */
     public function has(string $message): bool
     {
-        return isset(static::$messages[$message]);
+        return array_key_exists($message, static::$messages);
     }
 
-    /**
-     * @return string
-     */
-    public function locale(): string
-    {
-        return $this->locale;
-    }
-
-    /**
-     * Plural form getter
-     *
-     * @param int $n
-     * @return string
-     */
-    abstract public function plural(int $n): string;
+    abstract public function plural(int $n): Plural;
+    abstract public function locale(): string;
+    abstract public function build(): int;
 }

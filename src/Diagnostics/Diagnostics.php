@@ -14,36 +14,28 @@ declare(strict_types=1);
 
 namespace Bckp\Translator\Diagnostics;
 
-use Bckp\Translator\IDiagnostics;
+use Bckp\Translator\Interfaces;
 
 use function array_unique;
 
-/**
- * Class Diagnostics
- *
- * @package Bckp\Translator\Diagnostics
- */
-class Diagnostics implements IDiagnostics
+class Diagnostics implements Interfaces\Diagnostics
 {
     /** @var string */
-    private $locale = '';
+    private string $locale = '';
 
     /** @var array<string> */
-    private $messages = [];
+    private array $messages = [];
 
     /** @var array<string> */
-    private $untranslated = [];
+    private array $untranslated = [];
 
-    /**
-     * @return string
-     */
     public function getLocale(): string
     {
         return $this->locale;
     }
 
     /**
-     * @return array<string>
+     * @return string[]
      */
     public function getUntranslated(): array
     {
@@ -51,30 +43,23 @@ class Diagnostics implements IDiagnostics
     }
 
     /**
-     * @return array<string>
+     * @return string[]
      */
     public function getWarnings(): array
     {
         return array_unique($this->messages);
     }
 
-    /** @param string $locale */
     public function setLocale(string $locale): void
     {
         $this->locale = $locale;
     }
 
-    /**
-     * @param string $message
-     */
     public function untranslated(string $message): void
     {
         $this->untranslated[] = $message;
     }
 
-    /**
-     * @param string $message
-     */
     public function warning(string $message): void
     {
         $this->messages[] = $message;
