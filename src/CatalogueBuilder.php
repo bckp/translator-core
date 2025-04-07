@@ -183,13 +183,11 @@ final class CatalogueBuilder
         $file->setComment('This file was auto-generated');
 
         $class = new ClassType();
-        //$class = $file->addClass($className);
         $class->setExtends(Catalogue::class);
-        //$class->addComment("This file was auto-generated");
 
         // Setup plural method
         $method = $class->addMethod('plural');
-        $plural = Method::from($this->plural->getPlural($this->locale));
+        $plural = Method::from((array)$this->plural->getPlural($this->locale));
         $method->setParameters($plural->getParameters());
         $parameters = $method->getParameters();
         $method->setBody('return Bckp\Translator\PluralProvider::?($?);', [$plural->getName(), key($parameters)]);

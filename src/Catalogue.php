@@ -25,7 +25,7 @@ abstract class Catalogue
     protected static array $messages;
 
     /**
-     * @return string|string[]
+     * @return string|array<string, string>
      */
     public function get(string $message): array|string
     {

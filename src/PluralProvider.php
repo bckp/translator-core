@@ -54,10 +54,7 @@ final class PluralProvider
             : Plural::Other;
     }
 
-    /**
-     * @return array{0: self, 1: 'csPlural'|'enPlural'|'zeroPlural'}
-     */
-    public function getPlural(string $locale): array
+    public function getPlural(string $locale): callable
     {
         return match(strtolower($locale)) {
             'cs' => [$this, 'csPlural'],
