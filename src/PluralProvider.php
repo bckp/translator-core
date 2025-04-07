@@ -14,26 +14,11 @@ declare(strict_types=1);
 
 namespace Bckp\Translator;
 
+use Closure;
 use function strtolower;
 
 final class PluralProvider
 {
-    public const Default = 'enPlural';
-    private array $plurals = [
-        'cs' => 'csPlural',
-        'en' => 'enPlural',
-        'id' => 'zeroPlural',
-        'ja' => 'zeroPlural',
-        'ka' => 'zeroPlural',
-        'ko' => 'zeroPlural',
-        'lo' => 'zeroPlural',
-        'ms' => 'zeroPlural',
-        'my' => 'zeroPlural',
-        'th' => 'zeroPlural',
-        'vi' => 'zeroPlural',
-        'zh' => 'zeroPlural',
-    ];
-
     /**
      * Czech plural selector (zero-one-few-other)
      */
@@ -70,19 +55,14 @@ final class PluralProvider
     }
 
     /**
-     * Get plural method
-     *
-     * @param string $locale
-     * @return callable(int|null $n): string
+     * @return array{self, 'csPlural'|'enPlural'|'zeroPlural'}
      */
-    public function getPlural(string $locale): callable
+    public function getPlural(string $locale): array
     {
-        $locale = strtolower($locale);
-        $callable = [$this, $this->plurals[$locale] ?? null];
-
-        if ($callable[1] && is_callable($callable)) {
-            return $callable;
-        }
-        return [$this, self::Default];
+        return match(strtolower($locale)) {
+            'cs' => [$this, 'csPlural'],
+            'id', 'ja', 'ka', 'ko', 'lo', 'ms', 'my', 'th', 'vi', 'zh' => [$this, 'zeroPlural'],
+            default => [$this, 'enPlural'],
+        };
     }
 }

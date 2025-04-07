@@ -21,7 +21,7 @@ namespace Bckp\Translator;
  */
 abstract class Catalogue
 {
-    /** @var array<string|array> */
+    /** @var array<string|array<string, string>> */
     protected static array $messages;
 
     /**

@@ -25,7 +25,6 @@ use RuntimeException;
 use SplFileInfo;
 use Throwable;
 
-use function class_exists;
 use function file_exists;
 use function file_get_contents;
 use function file_put_contents;
@@ -190,7 +189,7 @@ final class CatalogueBuilder
 
         // Setup plural method
         $method = $class->addMethod('plural');
-        $plural = Method::from((array)$this->plural->getPlural($this->locale));
+        $plural = Method::from($this->plural->getPlural($this->locale));
         $method->setParameters($plural->getParameters());
         $parameters = $method->getParameters();
         $method->setBody('return Bckp\Translator\PluralProvider::?($?);', [$plural->getName(), key($parameters)]);

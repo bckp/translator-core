@@ -25,6 +25,12 @@
       "src/"
     ]
   },
+  "scripts": {
+    "phpstan": "phpstan analyse",
+    "tests": "tester tests -s",
+    "tests-watch": "tester tests -s -w src",
+    "psalm": "psalm"
+  },
   "require-dev": {
     "roave/security-advisories": "dev-latest",
     "squizlabs/php_codesniffer": "*",

@@ -30,6 +30,9 @@ class TranslatorProvider
      */
     protected array $translators = [];
 
+    /**
+     * @param array<string> $languages
+     */
     public function __construct(
         protected array $languages,
         protected ?Interfaces\Diagnostics $diagnostics = null

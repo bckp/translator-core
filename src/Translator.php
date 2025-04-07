@@ -81,6 +81,9 @@ class Translator implements Interfaces\Translator
         return $translation;
     }
 
+    /**
+     * @param array<string, string> $translations
+     */
     public function getVariant(string $message, array $translations, Plural $plural): string
     {
         if (!array_key_exists($plural->value, $translations)) {
