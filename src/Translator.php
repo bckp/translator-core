@@ -73,7 +73,7 @@ class Translator implements Interfaces\Translator
             $translation = $this->getVariant($message, $translation, $plural);
         }
 
-        if ($parameters) {
+        if (!empty($parameters)) {
             $translation = ($this->normalizeCallback)($translation);
             $translation = @vsprintf($translation, $parameters);
         }

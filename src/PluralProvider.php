@@ -55,7 +55,7 @@ final class PluralProvider
     }
 
     /**
-     * @return array{self, 'csPlural'|'enPlural'|'zeroPlural'}
+     * @return array{0: self, 1: 'csPlural'|'enPlural'|'zeroPlural'}
      */
     public function getPlural(string $locale): array
     {

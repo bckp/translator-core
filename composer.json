@@ -28,12 +28,10 @@
   "scripts": {
     "phpstan": "phpstan analyse",
     "tests": "tester tests -s",
-    "tests-watch": "tester tests -s -w src",
-    "psalm": "psalm"
+    "tests-watch": "tester tests -s -w src"
   },
   "require-dev": {
     "roave/security-advisories": "dev-latest",
-    "squizlabs/php_codesniffer": "*",
     "phpstan/phpstan": "^2",
     "nette/utils": "^4.0",
     "nette/tester": "^2.5"

@@ -52,7 +52,7 @@ final class CatalogueBuilder
 
     private bool $debug = false;
     private bool $loaded = false;
-    private readonly string $locale;
+    private string $locale;
 
 
     public function __construct(
