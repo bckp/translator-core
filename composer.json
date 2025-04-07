@@ -28,7 +28,9 @@
   "scripts": {
     "phpstan": "phpstan analyse",
     "tests": "tester tests -s",
-    "tests-watch": "tester tests -s -w src"
+    "tests-watch": "tester tests -s -w src",
+    "phpcs": "PHP_CS_FIXER_IGNORE_ENV=1 php-cs-fixer check",
+    "phpcs-fix": "PHP_CS_FIXER_IGNORE_ENV=1 php-cs-fixer fix"
   },
   "require-dev": {
     "roave/security-advisories": "dev-latest",
