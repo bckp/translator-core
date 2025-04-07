@@ -27,5 +27,10 @@ interface Translator
 	/**
 	 * @api
 	 */
+	public function getLocale(): string;
+
+	/**
+	 * @api
+	 */
 	public function translate(string|Stringable $message, float|int|string ...$parameters): string;
 }

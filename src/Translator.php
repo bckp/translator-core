@@ -60,6 +60,15 @@ final class Translator implements Interfaces\Translator
 	 * @api
 	 */
 	#[\Override]
+	public function getLocale(): string
+	{
+		return $this->catalogue->locale();
+	}
+
+	/**
+	 * @api
+	 */
+	#[\Override]
 	public function translate(string|Stringable $message, float|int|string ...$parameters): string
 	{
 		$message = (string) $message;
