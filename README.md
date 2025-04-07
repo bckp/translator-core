@@ -24,7 +24,7 @@ $compiledCatalogue = $catalogue->compile();
 $translator = new Translator($compiledCatalogue);
 
 $translator->translate('errors.error.notFound'); // Will output "Soubor nenalezen"
-$translator->translate(['messages.plural', 4]); // Will output "4 lidé"
+$translator->translate('messages.plural', 4); // Will output "4 lidé"
 $translator->translate('messages.withArgs', 'Honza', 'poledne'); // Will output "Ahoj, já jsem Honza, přeji krásné poledne"
 $translator->translate('messages.withArgsRev', 'Honza', 'poledne'); // Will output "Krásné poledne, já jsem Honza"
 ```
