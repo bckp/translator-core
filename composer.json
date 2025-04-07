@@ -29,6 +29,7 @@
     "phpstan": "phpstan analyse",
     "tests": "tester tests -s",
     "tests-watch": "tester tests -s -w src",
+    "psalm": "psalm",
     "phpcs": "PHP_CS_FIXER_IGNORE_ENV=1 php-cs-fixer check",
     "phpcs-fix": "PHP_CS_FIXER_IGNORE_ENV=1 php-cs-fixer fix"
   },
@@ -37,6 +38,7 @@
     "phpstan/phpstan": "^2",
     "nette/utils": "^4.0",
     "nette/tester": "^2.5",
-    "friendsofphp/php-cs-fixer": "^3.75"
+    "friendsofphp/php-cs-fixer": "^3.75",
+    "vimeo/psalm": "^6.5"
   }
 }

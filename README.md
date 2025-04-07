@@ -2,8 +2,8 @@ Bckp\Translator
 ====================
 
 [![Downloads this Month](https://img.shields.io/packagist/dm/bckp/translator-core.svg)](https://packagist.org/packages/bckp/translator-core)
-[![Build Status](https://github.com/bckp/translator-core/actions/workflows/tests.yaml)](https://github.com/bckp/translator-core/actions/workflows/tests.yaml/badge.svg)
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/bckp/translator-core/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/bckp/translator-core/?branch=master)
+[![Build Status](https://github.com/bckp/translator-core/actions/workflows/tests.yaml/badge.svg)](https://github.com/bckp/translator-core/actions/workflows/tests.yaml)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/bckp/translator-core/badges/quality-score.png?b=main)](https://scrutinizer-ci.com/g/bckp/translator-core/?branch=main)
 [![Latest Stable Version](https://poser.pugx.org/bckp/translator-core/v/stable)](https://packagist.org/packages/bckp/translator-core)
 [![License](https://img.shields.io/badge/license-New%20BSD-blue.svg)](https://github.com/nette/application/blob/master/license.md)
 

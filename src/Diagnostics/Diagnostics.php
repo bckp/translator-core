@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * BCKP Translator
  * (c) Radovan Kepák
@@ -7,10 +9,8 @@
  * For the full copyright and license information, please view
  * the file license.md that was distributed with this source code.
  *
- * @author Radovan Kepak <radovan@kepak.eu>
+ * @author Radovan Kepak <radovan@kepak.dev>
  */
-
-declare(strict_types=1);
 
 namespace Bckp\Translator\Diagnostics;
 
@@ -18,6 +18,9 @@ use Bckp\Translator\Interfaces;
 
 use function array_unique;
 
+/**
+ * @api
+ */
 class Diagnostics implements Interfaces\Diagnostics
 {
 	/** @var string */
@@ -50,17 +53,17 @@ class Diagnostics implements Interfaces\Diagnostics
 		return array_unique($this->messages);
 	}
 
-	public function setLocale(string $locale): void
+	#[\Override] public function setLocale(string $locale): void
 	{
 		$this->locale = $locale;
 	}
 
-	public function untranslated(string $message): void
+	#[\Override] public function untranslated(string $message): void
 	{
 		$this->untranslated[] = $message;
 	}
 
-	public function warning(string $message): void
+	#[\Override] public function warning(string $message): void
 	{
 		$this->messages[] = $message;
 	}

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * BCKP Translator
  * (c) Radovan Kepák
@@ -7,10 +9,8 @@
  * For the full copyright and license information, please view
  * the file license.md that was distributed with this source code.
  *
- * @author Radovan Kepak <radovan@kepak.eu>
+ * @author Radovan Kepak <radovan@kepak.dev>
  */
-
-declare(strict_types=1);
 
 namespace Bckp\Translator;
 
@@ -54,7 +54,9 @@ final class CatalogueBuilder
 	private bool $loaded = false;
 	private string $locale;
 
-
+	/**
+	 * @api
+	 */
 	public function __construct(
 		private readonly PluralProvider $plural,
 		private readonly string $path,
@@ -67,12 +69,18 @@ final class CatalogueBuilder
 		$this->locale = strtolower($locale);
 	}
 
+	/**
+	 * @api
+	 */
 	public function addFile(string $file): self
 	{
 		$this->collection[] = $file;
 		return $this;
 	}
 
+	/**
+	 * @api
+	 */
 	public function addDynamic(string $resource, callable $callback): self
 	{
 		$this->dynamic[strtolower($resource)] = $callback;
@@ -80,6 +88,7 @@ final class CatalogueBuilder
 	}
 
 	/**
+	 * @api
 	 * @throws Throwable
 	 */
 	public function rebuild(int $attempt = 0): Catalogue
@@ -89,17 +98,11 @@ final class CatalogueBuilder
 		return $this->compile($attempt);
 	}
 
-	/**
-	 * @return string
-	 */
 	protected function getName(): string
 	{
 		return $this->locale . 'Catalogue';
 	}
 
-	/**
-	 * @param string $filename
-	 */
 	private function unlink(string $filename): void
 	{
 		/** @scrutinizer ignore-unhandled */
@@ -139,9 +142,6 @@ final class CatalogueBuilder
 		}
 	}
 
-	/**
-	 * @param string $filename
-	 */
 	protected function checkForChanges(string $filename): void
 	{
 		if (!$this->debug) {
@@ -160,22 +160,11 @@ final class CatalogueBuilder
 		$this->onCheck($cacheTime);
 	}
 
-	/**
-	 * Compile cache code
-	 *
-	 * @return string
-	 */
 	protected function compileCode(): string
 	{
 		// Load messages, then generate code
 		$messages = $this->getMessages();
 		$this->onCompile($messages);
-
-		/*
-				do {
-					$className = $this->getName() . substr(md5((string) mt_rand()), 4, 8);
-				} while (class_exists($className));
-		*/
 
 		// File
 		$file = new PhpFile();
@@ -192,6 +181,8 @@ final class CatalogueBuilder
 		$parameters = $method->getParameters();
 		$method->setBody('return Bckp\Translator\PluralProvider::?($?);', [$plural->getName(), key($parameters)]);
 		$method->setReturnNullable($plural->isReturnNullable());
+
+		/** @psalm-suppress PossiblyInvalidArgument getReturnType return string if not argument present */
 		$method->setReturnType($plural->getReturnType());
 
 		// Messages & build time
@@ -208,8 +199,6 @@ final class CatalogueBuilder
 	}
 
 	/**
-	 * Get all messages
-	 *
 	 * @return string[]
 	 * @throws FileInvalidException
 	 */
@@ -244,35 +233,40 @@ final class CatalogueBuilder
 	}
 
 	/**
-	 * @param string $file
 	 * @return string[]
 	 * @throws PathInvalidException
 	 * @throws FileInvalidException
 	 */
 	protected function loadFile(string $file): array
 	{
-		if (!file_exists($file) || !is_readable($file)) {
-			throw new PathInvalidException("File '$file' not found or is not readable.");
-		}
-
-		$content = file_get_contents($file);
-		if (!$content) {
+		$content = $this->readFile($file);
+		if ($content === null) {
 			return [];
 		}
 
 		try {
-			$content = Neon::decode($content);
-			if (!is_array($content)) {
+			$data = Neon::decode($content);
+			if (!is_array($data)) {
 				throw new RuntimeException('No array');
 			}
+
+			return $data;
 		} catch (Throwable $e) {
 			throw new FileInvalidException(
 				"File '$file' do not contain array of translations",
-				$e->getCode(),
+				(int) $e->getCode(),
 				$e
 			);
 		}
-		return $content;
+	}
+
+	private function readFile(string $file): ?string
+	{
+		if (!file_exists($file) || !is_readable($file)) {
+			throw new PathInvalidException("File '$file' not found or is not readable.");
+		}
+
+		return file_get_contents($file) ?: null;
 	}
 
 	/**
@@ -287,6 +281,9 @@ final class CatalogueBuilder
 		}
 	}
 
+	/**
+	 * @api
+	 */
 	public function getLocale(): string
 	{
 		return $this->locale;
@@ -312,11 +309,13 @@ final class CatalogueBuilder
 			return;
 		}
 
+		/** @psalm-suppress UnresolvableInclude */
 		$this->catalogue = require $filename;
 		$this->loaded = true;
 	}
 
 	/**
+	 * @api
 	 * @param callable $callback function(array &$messages, string $locale): void
 	 */
 	public function addCompileCallback(callable $callback): void
@@ -325,6 +324,7 @@ final class CatalogueBuilder
 	}
 
 	/**
+	 * @api
 	 * @param callable $callback function(string $locale): void
 	 */
 	public function addCheckCallback(callable $callback): void
@@ -332,6 +332,9 @@ final class CatalogueBuilder
 		$this->onCheck[] = $callback;
 	}
 
+	/**
+	 * @api
+	 */
 	public function setDebugMode(bool $debug): self
 	{
 		$this->debug = $debug;

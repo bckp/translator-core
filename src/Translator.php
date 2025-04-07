@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * BCKP Translator
  * (c) Radovan Kepák
@@ -7,10 +9,8 @@
  * For the full copyright and license information, please view
  * the file license.md that was distributed with this source code.
  *
- * @author Radovan Kepak <radovan@kepak.eu>
+ * @author Radovan Kepak <radovan@kepak.dev>
  */
-
-declare(strict_types=1);
 
 namespace Bckp\Translator;
 
@@ -22,15 +22,10 @@ use function array_key_last;
 use function is_array;
 use function vsprintf;
 
-/**
- * Class Translator
- *
- * @package Bckp\Translator
- */
-class Translator implements Interfaces\Translator
+final class Translator implements Interfaces\Translator
 {
 	/** @var callable function(string $string): string */
-	private $normalizeCallback;
+	protected $normalizeCallback;
 
 	public function __construct(
 		private readonly Catalogue $catalogue,
@@ -40,6 +35,9 @@ class Translator implements Interfaces\Translator
 		$this->diagnostics?->setLocale($catalogue->locale());
 	}
 
+	/**
+	 * @api
+	 */
 	public function normalize(string $string): string
 	{
 		return str_replace(
@@ -49,12 +47,20 @@ class Translator implements Interfaces\Translator
 		);
 	}
 
+	/**
+	 * @api
+	 */
+	#[\Override]
 	public function setNormalizeCallback(callable $callback): void
 	{
 		$this->normalizeCallback = $callback;
 	}
 
-	public function translate(string|Stringable $message, mixed ...$parameters): string
+	/**
+	 * @api
+	 */
+	#[\Override]
+	public function translate(string|Stringable $message, float|int|string ...$parameters): string
 	{
 		$message = (string) $message;
 
@@ -83,6 +89,7 @@ class Translator implements Interfaces\Translator
 	}
 
 	/**
+	 * @api
 	 * @param array<string, string> $translations
 	 */
 	public function getVariant(string $message, array $translations, Plural $plural): string
@@ -95,30 +102,20 @@ class Translator implements Interfaces\Translator
 			);
 		}
 
-		return $translations[$plural->value] ?? $translations[array_key_last($translations)];
+		return $translations[$plural->value] ?? $translations[array_key_last($translations)] ?? $message;
 	}
 
-	/**
-	 * @param string $message
-	 */
 	protected function untranslated(string $message): void
 	{
 		$this->diagnostics?->untranslated($message);
 	}
 
-	/**
-	 * @param string $message
-	 * @param mixed ...$parameters
-	 * @return string
-	 */
-	protected function warn(string $message, ...$parameters): string
+	protected function warn(string $message, float|int|string ...$parameters): void
 	{
 		if (!empty($parameters)) {
 			$message = @vsprintf($message, $parameters);
 		} // Intentionally @ as parameter count can mismatch
 
 		$this->diagnostics?->warning($message);
-
-		return $message;
 	}
 }

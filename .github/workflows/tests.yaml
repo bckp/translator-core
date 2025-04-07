@@ -2,18 +2,14 @@
 
 name: Tests
 
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the master branch
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
 
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   phpstan:
     name: PHPStan
@@ -43,19 +39,19 @@ jobs:
       - run: composer phpcs
         continue-on-error: true
 
-#  psalm:
-#    name: Psalm
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/checkout@v3
-#      - uses: shivammathur/setup-php@v2
-#        with:
-#          php-version: 8.0
-#          coverage: none
-#
-#      - run: composer install --no-progress --prefer-dist
-#      - run: composer psalm -- --no-progress
-#        continue-on-error: true
+  psalm:
+    name: Psalm
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.4
+          coverage: none
+
+      - run: composer install --no-progress --prefer-dist
+      - run: composer psalm -- --no-progress
+        continue-on-error: true
 
   tests:
     runs-on: ubuntu-latest
@@ -88,8 +84,13 @@ jobs:
           coverage: none
 
       - run: composer install --no-progress --prefer-dist
-      - run: vendor/bin/tester -p phpdbg tests -s -C --coverage ./coverage.xml --coverage-src ./src
-#      - run: wget https://github.com/php-coveralls/php-coveralls/releases/download/v2.4.3/php-coveralls.phar
-#      - env:
-#          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#        run: php php-coveralls.phar --verbose --config tests/.coveralls.yml
+      - name: Run tests with coverage
+        run: vendor/bin/tester -p phpdbg tests -s -C --coverage ./coverage.xml --coverage-src ./src
+
+      - name: Download php-coveralls
+        run: wget https://github.com/php-coveralls/php-coveralls/releases/download/v2.7.0/php-coveralls.phar
+
+      - name: Upload coverage results to Coveralls
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: php php-coveralls.phar --verbose --config tests/.coveralls.yml
