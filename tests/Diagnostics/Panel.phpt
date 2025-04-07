@@ -3,7 +3,6 @@
 namespace Bckp\Translator;
 
 use Bckp\Translator\Diagnostics\Diagnostics;
-use Bckp\Translator\Diagnostics\Panel;
 use Tester\Assert;
 
 require __DIR__ . '/../bootstrap.php';

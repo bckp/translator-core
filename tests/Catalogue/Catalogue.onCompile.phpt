@@ -11,12 +11,11 @@ $plural = (new PluralProvider());
 const LOCALE = 'dynamic';
 const RESOURCE = 'test';
 
-$catalogue = new Catalogue($plural, TEMP_DIR, LOCALE);
+$catalogue = new CatalogueBuilder($plural, TEMP_DIR, LOCALE);
 $catalogue->addDynamic(RESOURCE, function (array &$messages, string &$resource, string &$locale) {
     # Verify callback is called properly
     Assert::equal($locale, LOCALE);
     Assert::equal($resource, RESOURCE);
-    Assert::true(is_array($messages));
 
     # Add string
     $messages['string'] = 'test';

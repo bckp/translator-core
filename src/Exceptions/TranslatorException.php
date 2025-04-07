@@ -12,10 +12,8 @@
 
 declare(strict_types=1);
 
-namespace Bckp\Translator;
+namespace Bckp\Translator\Exceptions;
 
 use RuntimeException;
 
-class TranslatorException extends RuntimeException
-{
-}
+class TranslatorException extends RuntimeException {}

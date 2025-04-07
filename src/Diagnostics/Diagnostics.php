@@ -14,69 +14,54 @@ declare(strict_types=1);
 
 namespace Bckp\Translator\Diagnostics;
 
-use Bckp\Translator\IDiagnostics;
+use Bckp\Translator\Interfaces;
 
 use function array_unique;
 
-/**
- * Class Diagnostics
- *
- * @package Bckp\Translator\Diagnostics
- */
-class Diagnostics implements IDiagnostics
+class Diagnostics implements Interfaces\Diagnostics
 {
-    /** @var string */
-    private $locale = '';
+	/** @var string */
+	private string $locale = '';
 
-    /** @var array<string> */
-    private $messages = [];
+	/** @var array<string> */
+	private array $messages = [];
 
-    /** @var array<string> */
-    private $untranslated = [];
+	/** @var array<string> */
+	private array $untranslated = [];
 
-    /**
-     * @return string
-     */
-    public function getLocale(): string
-    {
-        return $this->locale;
-    }
+	public function getLocale(): string
+	{
+		return $this->locale;
+	}
 
-    /**
-     * @return array<string>
-     */
-    public function getUntranslated(): array
-    {
-        return array_unique($this->untranslated);
-    }
+	/**
+	 * @return string[]
+	 */
+	public function getUntranslated(): array
+	{
+		return array_unique($this->untranslated);
+	}
 
-    /**
-     * @return array<string>
-     */
-    public function getWarnings(): array
-    {
-        return array_unique($this->messages);
-    }
+	/**
+	 * @return string[]
+	 */
+	public function getWarnings(): array
+	{
+		return array_unique($this->messages);
+	}
 
-    /** @param string $locale */
-    public function setLocale(string $locale): void
-    {
-        $this->locale = $locale;
-    }
+	public function setLocale(string $locale): void
+	{
+		$this->locale = $locale;
+	}
 
-    /**
-     * @param string $message
-     */
-    public function untranslated(string $message): void
-    {
-        $this->untranslated[] = $message;
-    }
+	public function untranslated(string $message): void
+	{
+		$this->untranslated[] = $message;
+	}
 
-    /**
-     * @param string $message
-     */
-    public function warning(string $message): void
-    {
-        $this->messages[] = $message;
-    }
+	public function warning(string $message): void
+	{
+		$this->messages[] = $message;
+	}
 }

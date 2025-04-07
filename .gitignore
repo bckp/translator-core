@@ -2,3 +2,4 @@
 /vendor
 /temp
 /composer.lock
+.php-cs-fixer.cache

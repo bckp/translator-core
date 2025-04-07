@@ -10,3 +10,8 @@ options:
 	one: 'zapnuto'
 normalize: 'Hodnota prvku %value ma byt %s.'
 normalize2: 'Hodnota prvku %value.'
+numbers: '%d %d %d %d %d'
+numbersReverse: '%5$d %4$d %3$d %2$d %1$d'
+justSecond:
+    one: 'tahle ne'
+    other: '1 + %2$d = 2'
