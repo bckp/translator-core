@@ -16,6 +16,4 @@ namespace Bckp\Translator\Exceptions;
 
 use RuntimeException;
 
-class TranslatorException extends RuntimeException
-{
-}
+class TranslatorException extends RuntimeException {}

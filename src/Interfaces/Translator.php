@@ -23,10 +23,10 @@ use Stringable;
  */
 interface Translator
 {
-    /**
-     * @param callable $callback function(string $string): string
-     */
-    public function setNormalizeCallback(callable $callback): void;
+	/**
+	 * @param callable $callback function(string $string): string
+	 */
+	public function setNormalizeCallback(callable $callback): void;
 
-    public function translate(string|Stringable $message, mixed ...$params): string;
+	public function translate(string|Stringable $message, mixed ...$params): string;
 }

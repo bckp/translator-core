@@ -18,6 +18,4 @@ use Nette\FileNotFoundException;
 use Nette\InvalidStateException;
 use RuntimeException;
 
-class PathInvalidException extends FileNotFoundException
-{
-}
+class PathInvalidException extends FileNotFoundException {}

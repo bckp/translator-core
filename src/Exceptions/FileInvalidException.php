@@ -16,6 +16,4 @@ namespace Bckp\Translator\Exceptions;
 
 use Nette\InvalidStateException;
 
-class FileInvalidException extends InvalidStateException
-{
-}
+class FileInvalidException extends InvalidStateException {}

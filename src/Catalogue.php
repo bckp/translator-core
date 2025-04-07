@@ -21,23 +21,23 @@ namespace Bckp\Translator;
  */
 abstract class Catalogue
 {
-    /** @var array<string|array<string, string>> */
-    protected static array $messages;
+	/** @var array<string|array<string, string>> */
+	protected static array $messages;
 
-    /**
-     * @return string|array<string, string>
-     */
-    public function get(string $message): array|string
-    {
-        return static::$messages[$message] ?? '';
-    }
+	/**
+	 * @return string|array<string, string>
+	 */
+	public function get(string $message): array|string
+	{
+		return static::$messages[$message] ?? '';
+	}
 
-    public function has(string $message): bool
-    {
-        return array_key_exists($message, static::$messages);
-    }
+	public function has(string $message): bool
+	{
+		return array_key_exists($message, static::$messages);
+	}
 
-    abstract public function plural(int $n): Plural;
-    abstract public function locale(): string;
-    abstract public function build(): int;
+	abstract public function plural(int $n): Plural;
+	abstract public function locale(): string;
+	abstract public function build(): int;
 }

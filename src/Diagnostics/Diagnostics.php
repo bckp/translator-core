@@ -20,48 +20,48 @@ use function array_unique;
 
 class Diagnostics implements Interfaces\Diagnostics
 {
-    /** @var string */
-    private string $locale = '';
+	/** @var string */
+	private string $locale = '';
 
-    /** @var array<string> */
-    private array $messages = [];
+	/** @var array<string> */
+	private array $messages = [];
 
-    /** @var array<string> */
-    private array $untranslated = [];
+	/** @var array<string> */
+	private array $untranslated = [];
 
-    public function getLocale(): string
-    {
-        return $this->locale;
-    }
+	public function getLocale(): string
+	{
+		return $this->locale;
+	}
 
-    /**
-     * @return string[]
-     */
-    public function getUntranslated(): array
-    {
-        return array_unique($this->untranslated);
-    }
+	/**
+	 * @return string[]
+	 */
+	public function getUntranslated(): array
+	{
+		return array_unique($this->untranslated);
+	}
 
-    /**
-     * @return string[]
-     */
-    public function getWarnings(): array
-    {
-        return array_unique($this->messages);
-    }
+	/**
+	 * @return string[]
+	 */
+	public function getWarnings(): array
+	{
+		return array_unique($this->messages);
+	}
 
-    public function setLocale(string $locale): void
-    {
-        $this->locale = $locale;
-    }
+	public function setLocale(string $locale): void
+	{
+		$this->locale = $locale;
+	}
 
-    public function untranslated(string $message): void
-    {
-        $this->untranslated[] = $message;
-    }
+	public function untranslated(string $message): void
+	{
+		$this->untranslated[] = $message;
+	}
 
-    public function warning(string $message): void
-    {
-        $this->messages[] = $message;
-    }
+	public function warning(string $message): void
+	{
+		$this->messages[] = $message;
+	}
 }
