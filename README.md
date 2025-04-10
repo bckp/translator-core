@@ -3,6 +3,7 @@ Bckp\Translator
 
 [![Downloads this Month](https://img.shields.io/packagist/dm/bckp/translator-core.svg)](https://packagist.org/packages/bckp/translator-core)
 [![Build Status](https://github.com/bckp/translator-core/actions/workflows/tests.yaml/badge.svg)](https://github.com/bckp/translator-core/actions/workflows/tests.yaml)
+[![Coverage Status](https://coveralls.io/repos/github/bckp/translator-core/badge.svg?branch=main)](https://coveralls.io/github/bckp/translator-core?branch=main)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/bckp/translator-core/badges/quality-score.png?b=main)](https://scrutinizer-ci.com/g/bckp/translator-core/?branch=main)
 [![Latest Stable Version](https://poser.pugx.org/bckp/translator-core/v/stable)](https://packagist.org/packages/bckp/translator-core)
 [![License](https://img.shields.io/badge/license-New%20BSD-blue.svg)](https://github.com/nette/application/blob/master/license.md)
@@ -13,7 +14,7 @@ Usage
 -----
 For each language, we create Catalogue, that will compile PHP cache file with translations.
 ```php
-$catalogue = new Catalogue(new PluralProvider(), './path/to/cache', 'cs');
+$catalogue = new CatalogueBuilder(new PluralProvider(), './path/to/cache', 'cs');
 $catalogue->addFile('./path/to/locales/errors.cs.neon');
 $catalogue->addFile('./path/to/locales/messages.cs.neon');
 
@@ -32,7 +33,7 @@ $translator->translate('messages.withArgsRev', 'Honza', 'poledne'); // Will outp
 You can add your own source of text by callback
 
 ```php
-$catalogue = new Catalogue(new PluralProvider(), './path/to/cache', 'cs');
+$catalogue = new CatalogueBuilder(new PluralProvider(), './path/to/cache', 'cs');
 $catalogue->addDynamic('errors', function(array &$messages, string $resource, string $locale){
     $messages['common'] = 'Common error translation';
     $messages['critical'] = $this->database->fetchAll('translations')->where('resource = ? and locale = ?', $resource, $locale);
