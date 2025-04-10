@@ -70,7 +70,7 @@ Debug mode will made translator slower, it will check every time you call compil
 
 Or you can use TranslatorProvider
 ```php
-$catalogue = new Catalogue(new PluralProvider(), './path/to/cache', 'cs');
+$catalogue = new CatalogueBuilder(new PluralProvider(), './path/to/cache', 'cs');
 $catalogue->addFile('./path/to/locales/errors.cs.neon');
 $catalogue->addFile('./path/to/locales/messages.cs.neon');
 

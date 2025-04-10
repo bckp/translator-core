@@ -34,6 +34,7 @@ $csCatalogueBuilder->addFile('./translations/test.cs.neon');
 // cs translator
 $translator = new Translator($csCatalogueBuilder->compile(), $diagnostics);
 
+Assert::equal('cs', $translator->getLocale());
 Assert::equal('Vítejte', $translator->translate('test.welcome'));
 Assert::equal('Vítejte', $translator->translate('test.welcome', 3));
 Assert::equal('Vítejte', $translator->translate('test.welcome', 3));
@@ -45,6 +46,8 @@ Assert::equal('test.blank', $translator->translate('test.blank'), 'Translation i
 Assert::equal('zapnuto', $translator->translate('test.options'));
 Assert::equal('zapnuto', $translator->translate('test.options', 7));
 Assert::equal('5 lidí', $translator->translate('test.plural', 5, 5));
+
+Assert::equal('Hodnota prvku %value ma byt %value.', $translator->translate('test.normalize', '%value'));
 
 Assert::equal('1 2 3 4 5', $translator->translate('test.numbers', 1,2,3,4,5));
 Assert::equal('5 4 3 2 1', $translator->translate('test.numbersReverse', 1,2,3,4,5));
