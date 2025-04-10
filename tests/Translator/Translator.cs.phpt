@@ -12,11 +12,7 @@ require __DIR__ . '/../bootstrap.php';
 
 // Prepare
 $plural = new PluralProvider();
-$panel = new Diagnostics();
-$provider = new TranslatorProvider(['cs', 'en'], $panel);
-$provider->addCatalogue('cs', (new CatalogueBuilder($plural, TEMP_DIR, 'cs'))->addFile('./translations/test.cs.neon'));
-$provider->addCatalogue('en', (new CatalogueBuilder($plural, TEMP_DIR, 'en'))->addFile('./translations/test.en.neon'));
-$provider->addCatalogue('hu', (new CatalogueBuilder($plural, TEMP_DIR, 'hu')));
+$diagnostics = new Diagnostics();
 
 // Test object
 $string = new class implements Stringable {
@@ -32,8 +28,12 @@ $nonString = new class {
     }
 };
 
+$csCatalogueBuilder = new CatalogueBuilder($plural, TEMP_DIR, 'cs');
+$csCatalogueBuilder->addFile('./translations/test.cs.neon');
+
 // cs translator
-$translator = $provider->getTranslator('cs');
+$translator = new Translator($csCatalogueBuilder->compile(), $diagnostics);
+
 Assert::equal('Vítejte', $translator->translate('test.welcome'));
 Assert::equal('Vítejte', $translator->translate('test.welcome', 3));
 Assert::equal('Vítejte', $translator->translate('test.welcome', 3));
@@ -51,30 +51,7 @@ Assert::equal('5 4 3 2 1', $translator->translate('test.numbersReverse', 1,2,3,4
 
 Assert::equal('1 + 1 = 2', $translator->translate('test.justSecond', 5, 1));
 
-// en translator
-$translator = $provider->getTranslator('en');
-Assert::equal('Welcome', $translator->translate('test.welcome'));
-Assert::equal('', $translator->translate(''));
-Assert::equal('not.existing', $translator->translate('not.existing'));
-
-// hu translator
-$translator = $provider->getTranslator('hu');
-Assert::equal('test.welcome', $translator->translate('test.welcome'));
-Assert::equal('', $translator->translate(''));
-Assert::equal('not.existing', $translator->translate('not.existing'));
-
-// Warning and error should be defined
-Assert::truthy($panel->getUntranslated());
-Assert::truthy($panel->getWarnings());
-
-// Exception on non-exists catalogue
-Assert::exception(static function () use ($provider) {
-    return $provider->getTranslator('jp');
-}, TranslatorException::class);
-
 // Normalize check
-$translator = $provider->getTranslator('cs');
-
 $callbackUsed = false;
 $translator->setNormalizeCallback(function (string $string) use (&$callbackUsed) {
     $callbackUsed = true;

@@ -11,5 +11,4 @@ return (new PhpCsFixer\Config())
     ])
     ->setIndent("\t")
     ->setLineEnding("\n")
-    ->setFinder($finder)
-    ;
+    ->setFinder($finder);

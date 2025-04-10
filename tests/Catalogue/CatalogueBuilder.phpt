@@ -76,6 +76,7 @@ $catalogue = new CatalogueBuilder($plural, TEMP_DIR, 'x8');
 $catalogue->addFile('./translations/test.cs.neon');
 file_put_contents(TEMP_DIR . '/x8Catalogue.php', '<?php');
 $compiled = $catalogue->compile(2);
+Assert::same('x8', $compiled->locale());
 Assert::same('x8', $catalogue->getLocale());
 Assert::type(Catalogue::class, $compiled);
 @unlink(TEMP_DIR . '/x8Catalogue.php');
