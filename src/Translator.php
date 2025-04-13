@@ -32,7 +32,7 @@ final class Translator implements Interfaces\Translator
 		private readonly ?Diagnostics $diagnostics = null
 	) {
 		$this->normalizeCallback = [$this, 'normalize'];
-		$this->diagnostics?->setLocale($catalogue->locale());
+		$this->diagnostics?->setLocale($catalogue->locale);
 	}
 
 	/**
@@ -62,7 +62,7 @@ final class Translator implements Interfaces\Translator
 	#[\Override]
 	public function getLocale(): string
 	{
-		return $this->catalogue->locale();
+		return $this->catalogue->locale;
 	}
 
 	/**

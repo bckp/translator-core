@@ -77,7 +77,7 @@ $catalogue->addFile('./translations/test.cs.neon');
 file_put_contents(TEMP_DIR . '/x8Catalogue.php', '<?php');
 $compiled = $catalogue->compile(2);
 Assert::same('x8', $compiled->locale());
-Assert::same('x8', $catalogue->getLocale());
+Assert::same('x8', $compiled->locale);
 Assert::type(Catalogue::class, $compiled);
 @unlink(TEMP_DIR . '/x8Catalogue.php');
 
@@ -85,11 +85,11 @@ $catalogue = new CatalogueBuilder($plural, TEMP_DIR, 'CS');
 $catalogue->addFile('./translations/test.cs.neon');
 $catalogue->addFile('./translations/blank.cs.neon');
 Assert::same('cs', $catalogue->getLocale());
-Assert::same('cs', $catalogue->compile()->locale());
+Assert::same('cs', $catalogue->compile()->locale);
 
 $compiled = $catalogue->compile();
 Assert::type(Catalogue::class, $compiled);
-Assert::true(filemtime('./translations/test.cs.neon') < $compiled->build());
+Assert::true(filemtime('./translations/test.cs.neon') < $compiled->build);
 Assert::true($compiled->has('test.welcome'));
 Assert::false($compiled->has('not-exists'));
 
@@ -112,7 +112,8 @@ Assert::same('en', $catalogue->getLocale());
 $compiled = $catalogue->compile();
 Assert::type(Catalogue::class, $compiled);
 Assert::true(filemtime('./translations/test.en.neon') < $compiled->build());
-Assert::same('en', $compiled->locale());
+Assert::same('en', $compiled->locale);
+Assert::same($compiled->locale(), $compiled->locale); // Deprecated call test
 
 // en catalogue
 Assert::type('string', $compiled->get('test.welcome'));

@@ -32,6 +32,7 @@ use function filemtime;
 use function is_readable;
 use function is_writable;
 use function strtolower;
+use function time;
 use function unlink;
 
 final class CatalogueBuilder
@@ -152,7 +153,7 @@ final class CatalogueBuilder
 		foreach ($this->collection as $file) {
 			$file = new SplFileInfo($file);
 			$fileTime = $file->getMTime();
-			if ($fileTime > $cacheTime || ($this->catalogue && $fileTime > $this->catalogue->build())) {
+			if ($fileTime > $cacheTime || ($this->catalogue && $fileTime > $this->catalogue->build)) {
 				throw new BuilderException('Rebuild required');
 			}
 		}
@@ -185,14 +186,14 @@ final class CatalogueBuilder
 		/** @psalm-suppress PossiblyInvalidArgument getReturnType return string if not argument present */
 		$method->setReturnType($plural->getReturnType());
 
-		// Messages & build time
-		$class->addMethod('locale')->setBody("return '{$this->getLocale()}';")->setReturnType('string');
-		$class->addMethod('build')->setBody('return ' . time() . ';')->setReturnType('int');
 		$class->addProperty('messages', $messages)->setType('array')->setStatic()->setVisibility('protected');
+
+        $build = time();
+        $locale = $this->getLocale();
 
 		// Generate code
 		$code = (string) $file;
-		$code .= "\nreturn new class {$class};\n";
+		$code .= "\nreturn new class (locale: '{$locale}', build: {$build}) {$class};\n";
 
 		// Return string
 		return $code;

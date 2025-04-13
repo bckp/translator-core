@@ -16,10 +16,18 @@ namespace Bckp\Translator;
 
 abstract class Catalogue
 {
+    public readonly int $build;
+    public readonly string $locale;
+
 	/** @var array<string|array<string, string>> */
 	protected static array $messages;
 
-	/**
+    public function __construct(string $locale, int $build) {
+        $this->build = $build;
+        $this->locale = $locale;
+    }
+
+    /**
 	 * @api
 	 * @return string|array<string, string>
 	 */
@@ -43,11 +51,17 @@ abstract class Catalogue
 
 	/**
 	 * @api
+     * @deprecated use property $locale instead
 	 */
-	abstract public function locale(): string;
+	public function locale(): string {
+        return $this->locale;
+    }
 
 	/**
 	 * @api
+     * @deprecated use property $build instead
 	 */
-	abstract public function build(): int;
+	public function build(): int {
+        return $this->build;
+    }
 }

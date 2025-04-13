@@ -16,8 +16,8 @@ $catalogue->addDynamic(RESOURCE, function (array &$messages) {
 });
 
 $compiled = $catalogue->compile();
-$buildTime = $compiled->build();
+$buildTime = $compiled->build;
 sleep(2);
 
 $compiled = $catalogue->rebuild();
-Assert::notEqual($buildTime, $compiled->build());
+Assert::notEqual($buildTime, $compiled->build);
