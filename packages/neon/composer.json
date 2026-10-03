@@ -3,7 +3,7 @@
     "description": "Versioned NEON translation source for bckp/translator-core 3",
     "license": "BSD-3-Clause",
     "require": {
-        "php": "^8.2",
+        "php": "^8.4",
         "bckp/translator-core": "^3.0",
         "nette/neon": "^3.4"
     },

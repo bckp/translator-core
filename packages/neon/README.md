@@ -1,6 +1,6 @@
 # NEON translation source
 
-`bckp/translator-neon` implements core 3.x `TranslationSource`. It requires PHP 8.2+ and `nette/neon`; the core itself does not depend on the NEON decoder.
+`bckp/translator-neon` implements core 3.x `TranslationSource`. It requires PHP 8.4+ and `nette/neon`; the core itself does not depend on the NEON decoder.
 
 This package lives in the core repository's `packages/neon` directory during `nextgen` development.
 

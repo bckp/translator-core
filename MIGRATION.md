@@ -1,6 +1,6 @@
 # Migrating from 2.x to 3.0
 
-3.0 is a breaking redesign. Upgrade the Nette adapter together with the core.
+3.0 is a breaking redesign and requires PHP 8.4 or newer, including its plugins and the Nette adapter. Upgrade the Nette adapter together with the core.
 
 ## Source and storage separation
 

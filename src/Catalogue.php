@@ -10,8 +10,7 @@ abstract class Catalogue
 		public readonly string $locale,
 		public readonly int $build,
 		public readonly SourceVersions $versions,
-	) {
-	}
+	) {}
 
 	abstract public function get(string $key): string|PluralMessage|null;
 

@@ -14,12 +14,12 @@ use Bckp\Translator\Storage\MemoryStorage;
 use Bckp\Translator\Translator;
 use Tester\Assert;
 
-$messages = (new MessageCatalogue())->add('hello', 'Hello')->add('0', 'Zero key')->add('zero', '0')->add('empty', '')
+$messages = new MessageCatalogue()->add('hello', 'Hello')->add('0', 'Zero key')->add('zero', '0')->add('empty', '')
 	->add('format', 'Hello %s')->add('normalize', '%value: %s')->add('reversed', '%2$s %1$s')
 	->add('people', new PluralMessage(zero: 'Nobody', one: '%d person', few: '%d people', other: '%d people'))
 	->add('options', new PluralMessage(zero: 'off', one: 'on'))->add('bad', '%s %s');
 $storage = new MemoryStorage();
-$builder = (new CatalogueBuilder($storage, 'cs'))->addSource('app', new StaticSource($messages, 'v1'));
+$builder = new CatalogueBuilder($storage, 'cs')->addSource('app', new StaticSource($messages, 'v1'));
 $diagnostics = new Diagnostics();
 $translator = new Translator($builder->compile(), $diagnostics);
 Assert::same('Hello', $translator->translate('hello'));
@@ -42,10 +42,10 @@ Assert::same(1, $diagnostics->getUntranslated()->count());
 Assert::exception(static fn() => $translator->translate('bad', 'only one'), TranslatorException::class);
 $translator->setNormalizeCallback(static fn(string $value): int => 1);
 Assert::exception(static fn() => $translator->translate('format', 'Ada'), UnexpectedValueException::class);
-$replacement = (new CatalogueBuilder($storage, 'cs', namespace: 'replacement'))
-	->addSource('app', new StaticSource((new MessageCatalogue())->add('hello', 'Updated'), 'v1'))->compile();
+$replacement = new CatalogueBuilder($storage, 'cs', namespace: 'replacement')
+	->addSource('app', new StaticSource(new MessageCatalogue()->add('hello', 'Updated'), 'v1'))->compile();
 $translator->replaceCatalogue($replacement);
 Assert::same('Updated', $translator->translate('hello'));
-$otherLocale = (new CatalogueBuilder($storage, 'en'))->compile();
+$otherLocale = new CatalogueBuilder($storage, 'en')->compile();
 Assert::exception(static fn() => $translator->replaceCatalogue($otherLocale), TranslatorException::class);
 Assert::same('cs', $translator->getLocale());

@@ -13,7 +13,7 @@
         }
     ],
     "require": {
-        "php": "^8.2"
+        "php": "^8.4"
     },
     "suggest": {
         "bckp/translator-nette": "For NETTE support"
@@ -37,7 +37,7 @@
         "phpstan/phpstan": "^2",
         "nette/utils": "^4.0",
         "nette/tester": "^2.5",
-        "friendsofphp/php-cs-fixer": "^3.75",
+        "friendsofphp/php-cs-fixer": "^3.95",
         "vimeo/psalm": "^6.5",
         "bckp/translator-neon": "@dev",
         "bckp/translator-php-cache": "@dev"

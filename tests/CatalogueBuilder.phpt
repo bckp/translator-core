@@ -12,7 +12,7 @@ use Tester\Assert;
 
 $storage = new MemoryStorage();
 $source = new CountingSource();
-$request = static fn(): CatalogueBuilder => (new CatalogueBuilder($storage, 'CS'))->addSource('application', $source);
+$request = static fn(): CatalogueBuilder => new CatalogueBuilder($storage, 'CS')->addSource('application', $source);
 $first = $request()->setCheckProbability(0);
 $catalogue = $first->compile();
 Assert::same('cs', $catalogue->locale);

@@ -6,7 +6,5 @@ namespace Bckp\Translator;
 
 final readonly class SourceVersion
 {
-	public function __construct(public string $id, public string $version)
-	{
-	}
+	public function __construct(public string $id, public string $version) {}
 }

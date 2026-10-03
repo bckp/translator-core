@@ -19,7 +19,7 @@ use Tester\Assert;
 
 $storage = new PhpCatalogueStorage(TEMP_DIR . '/cache');
 $source = new CountingSource('v1', 'Old');
-$request = static fn(): CatalogueBuilder => (new CatalogueBuilder($storage, 'cs'))->addSource('app', $source)->setCheckProbability(1);
+$request = static fn(): CatalogueBuilder => new CatalogueBuilder($storage, 'cs')->addSource('app', $source)->setCheckProbability(1);
 $active = $request();
 Assert::same('Old', $active->compile()->get('messages.hello'));
 $source->text = 'New with unchanged version';
@@ -38,7 +38,7 @@ $definition = new CatalogueDefinition(
 	'cs',
 	123,
 	new SourceVersions(new SourceVersion('app', $literal)),
-	(new MessageCatalogue())->add('literal', $literal)->add('0', '0')->add('empty', '')
+	new MessageCatalogue()->add('literal', $literal)->add('0', '0')->add('empty', '')
 		->add('people', new PluralMessage(one: '%d person', few: '%d people', other: '%d people')),
 	PluralRule::Czech
 );

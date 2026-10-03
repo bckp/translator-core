@@ -38,7 +38,7 @@ $overridePath = TEMP_DIR . '/overrides';
 mkdir($overridePath);
 file_put_contents($overridePath . '/messages.cs.neon', "hello: Override\n");
 Assert::same('Override', (new NeonSource(new StringList($path, $overridePath)))('cs')->get('messages.hello'));
-Assert::same('release-42', (new NeonSource('/does-not-exist', 'release-42'))->getVersion('cs'));
+Assert::same('release-42', new NeonSource('/does-not-exist', 'release-42')->getVersion('cs'));
 foreach (["'scalar'\n", "bad: 123\n", "bad:\n    unknown: value\n", "bad: [\n", "bad:\n    other: false\n"] as $invalid) {
 	file_put_contents($file, $invalid);
 	Assert::exception(static fn() => $source('cs'), InvalidTranslationException::class);

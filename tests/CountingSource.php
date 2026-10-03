@@ -16,9 +16,7 @@ final class CountingSource implements TranslationSource
 
 	public bool $fail = false;
 
-	public function __construct(public string $version = 'v1', public string $text = 'Hello')
-	{
-	}
+	public function __construct(public string $version = 'v1', public string $text = 'Hello') {}
 
 	#[\Override]
 	public function getVersion(string $locale): string
@@ -37,6 +35,6 @@ final class CountingSource implements TranslationSource
 			throw new RuntimeException('Source failed.');
 		}
 
-		return (new MessageCatalogue())->add('messages.hello', $this->text);
+		return new MessageCatalogue()->add('messages.hello', $this->text);
 	}
 }

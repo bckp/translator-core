@@ -8,12 +8,11 @@ $finder = (new PhpCsFixer\Finder())
 
 return (new PhpCsFixer\Config())
     ->setRules([
-        '@PER-CS2.0' => true,
-        '@PHP82Migration' => true,
+        '@PER-CS3x0' => true,
+        '@PHP8x4Migration' => true,
         'array_syntax' => ['syntax' => 'short'],
         'class_attributes_separation' => ['elements' => ['property' => 'one', 'method' => 'one']],
         'blank_line_before_statement' => ['statements' => ['if', 'return', 'try']],
-        'single_line_empty_body' => false,
     ])
     ->setIndent("\t")
     ->setLineEnding("\n")

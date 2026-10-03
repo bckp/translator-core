@@ -11,6 +11,11 @@ use Bckp\Translator\PluralMessage;
 use Bckp\Translator\Sources\CallbackSource;
 use Bckp\Translator\Translator;
 
+$opcache = function_exists('opcache_get_status') ? opcache_get_status(false) : false;
+echo 'PHP ', PHP_VERSION,
+'; OPcache: ', ($opcache['opcache_enabled'] ?? false) ? 'enabled' : 'disabled',
+'; JIT: ', ($opcache['jit']['on'] ?? false) ? 'enabled' : 'disabled', "\n";
+
 $iterations = max(1, (int) ($argv[1] ?? 300000));
 $loads = 0;
 $versions = 0;
@@ -18,7 +23,7 @@ $source = new CallbackSource(
 	static function (string $locale) use (&$loads): MessageCatalogue {
 		++$loads;
 
-		return (new MessageCatalogue())->add('messages.hello', 'Hello')->add('messages.format', 'Hello %s')
+		return new MessageCatalogue()->add('messages.hello', 'Hello')->add('messages.format', 'Hello %s')
 			->add('messages.people', new PluralMessage(zero: 'nobody', one: '%d person', few: '%d people', other: '%d people'));
 	},
 	static function (string $locale) use (&$versions): string {
@@ -27,7 +32,7 @@ $source = new CallbackSource(
 		return 'benchmark-v1';
 	},
 );
-$builder = (new CatalogueBuilder(new PhpCatalogueStorage(sys_get_temp_dir() . '/translator-benchmark-v3'), 'cs'))
+$builder = new CatalogueBuilder(new PhpCatalogueStorage(sys_get_temp_dir() . '/translator-benchmark-v3'), 'cs')
 	->setCheckProbability(0)->addSource('messages', $source);
 $translator = new Translator($builder->compile());
 $beforeLoads = $loads;

@@ -6,7 +6,5 @@ namespace Bckp\Translator\Neon;
 
 final readonly class NeonResource
 {
-	public function __construct(public string $path, public string $prefix)
-	{
-	}
+	public function __construct(public string $path, public string $prefix) {}
 }

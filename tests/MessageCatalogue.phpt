@@ -13,7 +13,7 @@ use Bckp\Translator\Sources\StaticSource;
 use Bckp\Translator\Sources\CallbackSource;
 use Tester\Assert;
 
-$messages = (new MessageCatalogue())->add('hello', 'Hello')->add('zero', '0')->add('empty', '');
+$messages = new MessageCatalogue()->add('hello', 'Hello')->add('zero', '0')->add('empty', '');
 Assert::same('0', $messages->get('zero'));
 Assert::same('', $messages->get('empty'));
 Assert::null($messages->get('missing'));
@@ -25,7 +25,7 @@ Assert::same('One', $plural->select(Plural::One));
 Assert::null($plural->select(Plural::Few));
 Assert::same('%d people', $plural->fallback);
 Assert::exception(static fn() => new PluralMessage(), InvalidArgumentException::class);
-$messages->merge((new MessageCatalogue())->add('hello', 'Overridden'));
+$messages->merge(new MessageCatalogue()->add('hello', 'Overridden'));
 Assert::same('Overridden', $messages->get('hello'));
 Assert::same(4, $messages->count());
 $source = new StaticSource($messages, 'fixed');
@@ -34,13 +34,13 @@ $source('cs')->add('hello', 'Changed returned value');
 Assert::same('Overridden', $source('cs')->get('hello'));
 Assert::same('fixed', $source->getVersion('cs'));
 $callback = new CallbackSource(
-	static fn(string $locale): MessageCatalogue => (new MessageCatalogue())->add('locale', $locale),
+	static fn(string $locale): MessageCatalogue => new MessageCatalogue()->add('locale', $locale),
 	static fn(string $locale): string => 'revision-' . $locale,
 );
 Assert::same('revision-cs', $callback->getVersion('cs'));
 Assert::same('cs', $callback('cs')->get('locale'));
 Assert::exception(static fn() => (new CallbackSource(static fn(): array => [], 'v1'))('cs'), UnexpectedValueException::class);
-Assert::exception(static fn() => (new CallbackSource(static fn(): MessageCatalogue => new MessageCatalogue(), static fn(): int => 1))->getVersion('cs'), UnexpectedValueException::class);
+Assert::exception(static fn() => new CallbackSource(static fn(): MessageCatalogue => new MessageCatalogue(), static fn(): int => 1)->getVersion('cs'), UnexpectedValueException::class);
 $a = new SourceVersions(new SourceVersion('a', ''), new SourceVersion('b', '0'));
 $b = new SourceVersions(new SourceVersion('a', ''), new SourceVersion('b', '0'));
 Assert::true($a->equals($b));

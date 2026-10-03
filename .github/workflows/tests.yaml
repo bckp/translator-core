@@ -33,7 +33,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: ['8.2', '8.3', '8.4']
+        php: ['8.4', '8.5']
     steps:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
@@ -43,7 +43,9 @@ jobs:
       - run: composer install --no-interaction --no-progress --prefer-dist
       - run: composer tests
       - name: Check compiled cache with OPcache
-        run: vendor/bin/tester tests/PhpCache.phpt tests/CacheConcurrency.phpt -s -d opcache.enable_cli=1 -d opcache.validate_timestamps=0
+        run: |
+          php -d opcache.enable_cli=1 -r '$status = function_exists("opcache_get_status") ? opcache_get_status(false) : false; if (!($status["opcache_enabled"] ?? false)) { throw new RuntimeException("OPcache is not active."); }'
+          vendor/bin/tester tests/PhpCache.phpt tests/CacheConcurrency.phpt -s -d opcache.enable_cli=1 -d opcache.validate_timestamps=0
 
   psalm:
     name: Psalm (optional)

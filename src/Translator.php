@@ -11,6 +11,11 @@ use Stringable;
 use UnexpectedValueException;
 use ValueError;
 
+use function is_numeric;
+use function is_string;
+use function str_replace;
+use function vsprintf;
+
 final class Translator implements Interfaces\Translator
 {
 	private Closure $normalizeCallback;
@@ -64,38 +69,44 @@ final class Translator implements Interfaces\Translator
 
 		$translation = $this->catalogue->get($message);
 
-		if ($translation === null) {
+		if (is_string($translation)) {
+			if ($parameters === []) {
+				return $translation;
+			}
+		} elseif ($translation === null) {
 			$this->diagnostics?->untranslated($message);
 
 			return $message;
-		}
+		} else {
+			$translation = $this->resolvePlural($message, $translation, $parameters[0] ?? null);
 
-		if ($translation instanceof PluralMessage) {
-			$plural = is_numeric($parameters[0] ?? null)
-				? $this->catalogue->plural((int) $parameters[0])
-				: Plural::Other;
-			$variant = $translation->select($plural);
-
-			if ($variant === null) {
-				$this->diagnostics?->warning("Plural form not defined. (message: $message, form: {$plural->value})");
-			}
-			$translation = $variant ?? $translation->fallback;
-		}
-
-		if ($parameters !== []) {
-			$translation = ($this->normalizeCallback)($translation);
-
-			if (!is_string($translation)) {
-				throw new UnexpectedValueException('The normalize callback must return a string.');
-			}
-
-			try {
-				$translation = vsprintf($translation, $parameters);
-			} catch (ValueError $exception) {
-				throw new TranslatorException("Invalid parameters for translation '$message'.", previous: $exception);
+			if ($parameters === []) {
+				return $translation;
 			}
 		}
 
-		return $translation;
+		$translation = ($this->normalizeCallback)($translation);
+
+		if (!is_string($translation)) {
+			throw new UnexpectedValueException('The normalize callback must return a string.');
+		}
+
+		try {
+			return vsprintf($translation, $parameters);
+		} catch (ValueError $exception) {
+			throw new TranslatorException("Invalid parameters for translation '$message'.", previous: $exception);
+		}
+	}
+
+	private function resolvePlural(string $message, PluralMessage $variants, float|int|string|null $quantity): string
+	{
+		$plural = is_numeric($quantity) ? $this->catalogue->plural((int) $quantity) : Plural::Other;
+		$translation = $variants->select($plural);
+
+		if ($translation === null) {
+			$this->diagnostics?->warning("Plural form not defined. (message: $message, form: {$plural->value})");
+		}
+
+		return $translation ?? $variants->fallback;
 	}
 }

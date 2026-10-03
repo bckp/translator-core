@@ -14,8 +14,7 @@ final readonly class CallbackSource implements TranslationSource
 	public function __construct(
 		private Closure $loader,
 		private string|Closure $version,
-	) {
-	}
+	) {}
 
 	#[\Override]
 	public function getVersion(string $locale): string

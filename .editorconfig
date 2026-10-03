@@ -19,3 +19,7 @@ max_line_length          = 80
 
 [*.patch]
 trim_trailing_whitespace = false
+
+[*.{php,phpt}]
+indent_style = tab
+indent_size = tab

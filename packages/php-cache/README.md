@@ -1,6 +1,6 @@
 # Compiled PHP catalogue storage
 
-`bckp/translator-php-cache` implements core 3.x `CatalogueStorage` for PHP 8.2+.
+`bckp/translator-php-cache` implements core 3.x `CatalogueStorage` for PHP 8.4+.
 
 This package lives in the core repository's `packages/php-cache` directory during `nextgen` development.
 

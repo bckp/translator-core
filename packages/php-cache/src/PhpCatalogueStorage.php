@@ -15,9 +15,7 @@ use Throwable;
 
 final readonly class PhpCatalogueStorage implements CatalogueStorage
 {
-	public function __construct(private string $path)
-	{
-	}
+	public function __construct(private string $path) {}
 
 	#[\Override]
 	public function load(string $key): ?Catalogue

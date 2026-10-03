@@ -1,6 +1,6 @@
 # Bckp Translator 3.0
 
-A small PHP 8.2+ translator with versioned sources and a compiled hot path. The core has no filesystem or framework dependency. It accepts typed translation sources and delegates cache persistence to a storage interface.
+A small PHP 8.4+ translator with versioned sources and a compiled hot path. The core has no filesystem or framework dependency. It accepts typed translation sources and delegates cache persistence to a storage interface.
 
 This is the `nextgen` development branch for the breaking 3.0 release.
 
@@ -23,7 +23,7 @@ composer phpcs
 composer benchmark
 ```
 
-PHPStan runs at level 8. Source code uses native types, strict types and attributes without docblocks.
+PHPStan runs at level 8. Source code uses native types, strict types and attributes without docblocks. PHP CS Fixer uses the PER Coding Style 3.0 preset with tab indentation and PHP 8.4 migration rules. EditorConfig also selects tabs for PHP files.
 
 ## Quick start
 

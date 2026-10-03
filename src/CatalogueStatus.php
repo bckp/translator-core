@@ -10,6 +10,5 @@ final readonly class CatalogueStatus
 		public Catalogue $catalogue,
 		public bool $checked,
 		public bool $recompiled,
-	) {
-	}
+	) {}
 }

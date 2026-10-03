@@ -3,7 +3,7 @@
     "description": "Atomic compiled PHP catalogue storage for bckp/translator-core 3",
     "license": "BSD-3-Clause",
     "require": {
-        "php": "^8.2",
+        "php": "^8.4",
         "bckp/translator-core": "^3.0"
     },
     "autoload": {

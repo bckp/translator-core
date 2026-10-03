@@ -19,7 +19,7 @@ if ($value !== 'read') {
 		'en',
 		1,
 		new SourceVersions(new SourceVersion('app', $value)),
-		(new MessageCatalogue())->add('hello', $value),
+		new MessageCatalogue()->add('hello', $value),
 		PluralRule::English
 	));
 }
