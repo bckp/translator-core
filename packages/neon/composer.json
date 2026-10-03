@@ -1,0 +1,15 @@
+{
+    "name": "bckp/translator-neon",
+    "description": "Versioned NEON translation source for bckp/translator-core 3",
+    "license": "BSD-3-Clause",
+    "require": {
+        "php": "^8.2",
+        "bckp/translator-core": "^3.0",
+        "nette/neon": "^3.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "Bckp\\Translator\\Neon\\": "src/"
+        }
+    }
+}

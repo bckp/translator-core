@@ -1,0 +1,14 @@
+{
+    "name": "bckp/translator-php-cache",
+    "description": "Atomic compiled PHP catalogue storage for bckp/translator-core 3",
+    "license": "BSD-3-Clause",
+    "require": {
+        "php": "^8.2",
+        "bckp/translator-core": "^3.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Bckp\\Translator\\PhpCache\\": "src/"
+        }
+    }
+}

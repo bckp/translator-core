@@ -1,44 +1,63 @@
 {
-  "name": "bckp/translator-core",
-  "description": "Simple and fast PHP translator",
-  "keywords": [
-    "translator"
-  ],
-  "homepage": "https://github.com/bckp/translator-core",
-  "license": "BSD-3-Clause",
-  "authors": [
-    {
-      "name": "Radovan Kepák",
-      "homepage": "https://kepak.dev"
+    "name": "bckp/translator-core",
+    "description": "Simple and fast PHP translator",
+    "keywords": [
+        "translator"
+    ],
+    "homepage": "https://github.com/bckp/translator-core",
+    "license": "BSD-3-Clause",
+    "authors": [
+        {
+            "name": "Radovan Kep\u00e1k",
+            "homepage": "https://kepak.dev"
+        }
+    ],
+    "require": {
+        "php": "^8.2"
+    },
+    "suggest": {
+        "bckp/translator-nette": "For NETTE support"
+    },
+    "autoload": {
+        "psr-4": {
+            "Bckp\\Translator\\": "src/"
+        }
+    },
+    "scripts": {
+        "phpstan": "phpstan analyse",
+        "tests": "tester tests -s",
+        "tests-watch": "tester tests -s -w src",
+        "psalm": "psalm",
+        "phpcs": "PHP_CS_FIXER_IGNORE_ENV=1 php-cs-fixer check --sequential",
+        "phpcs-fix": "PHP_CS_FIXER_IGNORE_ENV=1 php-cs-fixer fix --sequential",
+        "benchmark": "php benchmarks/translate.php"
+    },
+    "require-dev": {
+        "roave/security-advisories": "dev-latest",
+        "phpstan/phpstan": "^2",
+        "nette/utils": "^4.0",
+        "nette/tester": "^2.5",
+        "friendsofphp/php-cs-fixer": "^3.75",
+        "vimeo/psalm": "^6.5",
+        "bckp/translator-neon": "@dev",
+        "bckp/translator-php-cache": "@dev"
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "packages/*",
+            "options": {
+                "symlink": true,
+                "versions": {
+                    "bckp/translator-neon": "1.0.0",
+                    "bckp/translator-php-cache": "1.0.0"
+                }
+            }
+        }
+    ],
+    "extra": {
+        "branch-alias": {
+            "dev-nextgen": "3.0.x-dev"
+        }
     }
-  ],
-  "require": {
-    "php": "^8.2",
-    "nette/php-generator": ">=4 <5",
-    "nette/neon": ">3.3 <4"
-  },
-  "suggest": {
-    "bckp/translator-nette": "For NETTE support"
-  },
-  "autoload": {
-    "classmap": [
-      "src/"
-    ]
-  },
-  "scripts": {
-    "phpstan": "phpstan analyse",
-    "tests": "tester tests -s",
-    "tests-watch": "tester tests -s -w src",
-    "psalm": "psalm",
-    "phpcs": "PHP_CS_FIXER_IGNORE_ENV=1 php-cs-fixer check",
-    "phpcs-fix": "PHP_CS_FIXER_IGNORE_ENV=1 php-cs-fixer fix"
-  },
-  "require-dev": {
-    "roave/security-advisories": "dev-latest",
-    "phpstan/phpstan": "^2",
-    "nette/utils": "^4.0",
-    "nette/tester": "^2.5",
-    "friendsofphp/php-cs-fixer": "^3.75",
-    "vimeo/psalm": "^6.5"
-  }
 }

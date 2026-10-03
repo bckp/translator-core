@@ -2,68 +2,42 @@
 
 declare(strict_types=1);
 
-/**
- * BCKP Translator
- * (c) Radovan Kepák
- *
- * For the full copyright and license information, please view
- * the file license.md that was distributed with this source code.
- *
- * @author Radovan Kepak <radovan@kepak.dev>
- */
-
 namespace Bckp\Translator;
 
-use Closure;
-
-use function strtolower;
-
-final class PluralProvider
+class PluralProvider
 {
-	/**
-	 * Czech plural selector (zero-one-few-other)
-	 * @api
-	 */
-	public static function csPlural(?int $n): Plural
+	public static function csPlural(int $number): Plural
 	{
 		return match (true) {
-			$n === 0 => Plural::Zero,
-			$n === 1 => Plural::One,
-			$n >= 2 && $n <= 4 => Plural::Few,
+			$number === 0 => Plural::Zero,
+			$number === 1 => Plural::One,
+			$number >= 2 && $number <= 4 => Plural::Few,
 			default => Plural::Other,
 		};
 	}
 
-	/**
-	 * Default plural detector (zero-one-other)
-	 * @api
-	 */
-	public static function enPlural(?int $n): Plural
+	public static function enPlural(int $number): Plural
 	{
-		return match (true) {
-			$n === 0 => Plural::Zero,
-			$n === 1 => Plural::One,
+		return match ($number) {
+			0 => Plural::Zero,
+			1 => Plural::One,
 			default => Plural::Other,
 		};
 	}
 
-	/**
-	 * No plural detector (zero-other)
-	 * @api
-	 */
-	public static function zeroPlural(?int $n): Plural
+	public static function zeroPlural(int $number): Plural
 	{
-		return $n === 0
-			? Plural::Zero
-			: Plural::Other;
+		return $number === 0 ? Plural::Zero : Plural::Other;
 	}
 
-	public function getPlural(string $locale): callable
+	public function getRule(string $locale): PluralRule
 	{
-		return match (strtolower($locale)) {
-			'cs' => [$this, 'csPlural'],
-			'id', 'ja', 'ka', 'ko', 'lo', 'ms', 'my', 'th', 'vi', 'zh' => [$this, 'zeroPlural'],
-			default => [$this, 'enPlural'],
+		$language = explode('-', Locale::normalize($locale))[0];
+
+		return match ($language) {
+			'cs' => PluralRule::Czech,
+			'id', 'ja', 'ka', 'ko', 'lo', 'ms', 'my', 'th', 'vi', 'zh' => PluralRule::Invariant,
+			default => PluralRule::English,
 		};
 	}
 }

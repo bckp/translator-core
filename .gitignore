@@ -3,3 +3,4 @@
 /temp
 /composer.lock
 .php-cs-fixer.cache
+/tests/output

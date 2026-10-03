@@ -2,69 +2,74 @@
 
 declare(strict_types=1);
 
-/**
- * BCKP Translator
- * (c) Radovan Kepák
- *
- * For the full copyright and license information, please view
- * the file license.md that was distributed with this source code.
- *
- * @author Radovan Kepak <radovan@kepak.dev>
- */
-
 namespace Bckp\Translator\Diagnostics;
 
+use Bckp\Translator\CatalogueStatus;
 use Bckp\Translator\Interfaces;
+use Bckp\Translator\StringList;
+use Closure;
+use stdClass;
 
-use function array_unique;
-
-/**
- * @api
- */
 class Diagnostics implements Interfaces\Diagnostics
 {
-	/** @var string */
 	private string $locale = '';
 
-	/** @var array<string> */
-	private array $messages = [];
+	private StringList $warnings;
 
-	/** @var array<string> */
-	private array $untranslated = [];
+	private StringList $untranslated;
+
+	private stdClass $catalogues;
+
+	public function __construct()
+	{
+		$this->warnings = new StringList();
+		$this->untranslated = new StringList();
+		$this->catalogues = new stdClass();
+	}
 
 	public function getLocale(): string
 	{
 		return $this->locale;
 	}
 
-	/**
-	 * @return string[]
-	 */
-	public function getUntranslated(): array
+	public function getWarnings(): StringList
 	{
-		return array_unique($this->untranslated);
+		return clone $this->warnings;
 	}
 
-	/**
-	 * @return string[]
-	 */
-	public function getWarnings(): array
+	public function getUntranslated(): StringList
 	{
-		return array_unique($this->messages);
+		return clone $this->untranslated;
 	}
 
-	#[\Override] public function setLocale(string $locale): void
+	public function eachCatalogue(Closure $consumer): void
+	{
+		foreach (get_object_vars($this->catalogues) as $status) {
+			$consumer($status);
+		}
+	}
+
+	#[\Override]
+	public function setLocale(string $locale): void
 	{
 		$this->locale = $locale;
 	}
 
-	#[\Override] public function untranslated(string $message): void
+	#[\Override]
+	public function untranslated(string $message): void
 	{
-		$this->untranslated[] = $message;
+		$this->untranslated->add($message);
 	}
 
-	#[\Override] public function warning(string $message): void
+	#[\Override]
+	public function warning(string $message): void
 	{
-		$this->messages[] = $message;
+		$this->warnings->add($message);
+	}
+
+	#[\Override]
+	public function catalogueUsed(CatalogueStatus $status): void
+	{
+		$this->catalogues->{$status->catalogue->locale} = $status;
 	}
 }

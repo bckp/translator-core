@@ -2,129 +2,100 @@
 
 declare(strict_types=1);
 
-/**
- * BCKP Translator
- * (c) Radovan Kepák
- *
- * For the full copyright and license information, please view
- * the file license.md that was distributed with this source code.
- *
- * @author Radovan Kepak <radovan@kepak.dev>
- */
-
 namespace Bckp\Translator;
 
+use Bckp\Translator\Exceptions\TranslatorException;
 use Bckp\Translator\Interfaces\Diagnostics;
+use Closure;
 use Stringable;
-
-use function array_key_exists;
-use function array_key_last;
-use function is_array;
-use function vsprintf;
+use UnexpectedValueException;
+use ValueError;
 
 final class Translator implements Interfaces\Translator
 {
-	/** @var callable function(string $string): string */
-	protected $normalizeCallback;
+	private Closure $normalizeCallback;
 
 	public function __construct(
-		private readonly Catalogue $catalogue,
-		private readonly ?Diagnostics $diagnostics = null
+		private Catalogue $catalogue,
+		private readonly ?Diagnostics $diagnostics = null,
 	) {
-		$this->normalizeCallback = [$this, 'normalize'];
+		$this->normalizeCallback = self::normalize(...);
 		$this->diagnostics?->setLocale($catalogue->locale);
 	}
 
-	/**
-	 * @api
-	 */
-	public function normalize(string $string): string
+	public static function normalize(string $string): string
 	{
 		return str_replace(
 			['%label', '%value', '%name'],
 			['%%label', '%%value', '%%name'],
-			$string
+			$string,
 		);
 	}
 
-	/**
-	 * @api
-	 */
 	#[\Override]
-	public function setNormalizeCallback(callable $callback): void
+	public function setNormalizeCallback(Closure $callback): void
 	{
 		$this->normalizeCallback = $callback;
 	}
 
-	/**
-	 * @api
-	 */
 	#[\Override]
 	public function getLocale(): string
 	{
 		return $this->catalogue->locale;
 	}
 
-	/**
-	 * @api
-	 */
+	#[\Override]
+	public function replaceCatalogue(Catalogue $catalogue): void
+	{
+		if ($catalogue->locale !== $this->catalogue->locale) {
+			throw new TranslatorException('A replacement catalogue must use the same locale.');
+		}
+		$this->catalogue = $catalogue;
+	}
+
 	#[\Override]
 	public function translate(string|Stringable $message, float|int|string ...$parameters): string
 	{
 		$message = (string) $message;
 
-		if (empty($message)) {
+		if ($message === '') {
 			return '';
 		}
 
 		$translation = $this->catalogue->get($message);
-		if (!$translation) {
-			$this->untranslated($message);
+
+		if ($translation === null) {
+			$this->diagnostics?->untranslated($message);
+
 			return $message;
 		}
 
-		// Plural option is returned, we need to choose the right one
-		if (is_array($translation)) {
-			$plural = is_numeric($parameters[0] ?? null) ? $this->catalogue->plural((int) $parameters[0]) : Plural::Other;
-			$translation = $this->getVariant($message, $translation, $plural);
+		if ($translation instanceof PluralMessage) {
+			$plural = is_numeric($parameters[0] ?? null)
+				? $this->catalogue->plural((int) $parameters[0])
+				: Plural::Other;
+			$variant = $translation->select($plural);
+
+			if ($variant === null) {
+				$this->diagnostics?->warning("Plural form not defined. (message: $message, form: {$plural->value})");
+			}
+			$translation = $variant ?? $translation->fallback;
 		}
 
-		if (!empty($parameters)) {
+		if ($parameters !== []) {
 			$translation = ($this->normalizeCallback)($translation);
-			$translation = @vsprintf($translation, $parameters);
+
+			if (!is_string($translation)) {
+				throw new UnexpectedValueException('The normalize callback must return a string.');
+			}
+
+			try {
+				$translation = vsprintf($translation, $parameters);
+			} catch (ValueError $exception) {
+				throw new TranslatorException("Invalid parameters for translation '$message'.", previous: $exception);
+			}
 		}
 
 		return $translation;
-	}
-
-	/**
-	 * @api
-	 * @param array<string, string> $translations
-	 */
-	public function getVariant(string $message, array $translations, Plural $plural): string
-	{
-		if (!array_key_exists($plural->value, $translations)) {
-			$this->warn(
-				'Plural form not defined. (message: %s, form: %s)',
-				$message,
-				$plural->value,
-			);
-		}
-
-		return $translations[$plural->value] ?? $translations[array_key_last($translations)] ?? $message;
-	}
-
-	protected function untranslated(string $message): void
-	{
-		$this->diagnostics?->untranslated($message);
-	}
-
-	protected function warn(string $message, float|int|string ...$parameters): void
-	{
-		if (!empty($parameters)) {
-			$message = @vsprintf($message, $parameters);
-		} // Intentionally @ as parameter count can mismatch
-
-		$this->diagnostics?->warning($message);
 	}
 }
