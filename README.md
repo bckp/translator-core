@@ -9,11 +9,11 @@ This is the `nextgen` development branch for the breaking 3.0 release.
 | Package | Responsibility |
 | --- | --- |
 | `bckp/translator-core` | Typed messages, source contracts, version checks, catalogue building and translation |
-| `bckp/translator-neon` | NEON source plugin, in [`packages/neon`](packages/neon) |
+| `bckp/translator-neon` | NEON source plugin, in its [own repository](https://github.com/bckp/translator-neon) |
 | `bckp/translator-php-cache` | Compiled PHP storage plugin, in [`packages/php-cache`](packages/php-cache) |
 | `bckp/translator-nette` | Nette DI, locale resolution, Latte and Tracy integration |
 
-The plugins are separate Composer packages. For development in this repository, Composer installs them from `packages/*`.
+The plugins are separate Composer packages. The PHP-cache plugin is developed in `packages/php-cache` and installed locally through Composer. The NEON plugin has its own repository, tests and quality checks; it is not required to develop or test the core.
 
 ```sh
 COMPOSER_ROOT_VERSION=3.0.x-dev composer install
@@ -169,7 +169,7 @@ people:
     other: '%d lidí'
 ```
 
-Register the source before calling `compile()`. The file prefix produces keys such as `messages.welcome`. The plugin computes a content version automatically, including added and removed files. A configured constant version can avoid hashing for immutable release assets. See the [plugin documentation](packages/neon/README.md).
+Register the source before calling `compile()`. The file prefix produces keys such as `messages.welcome`. The plugin computes a content version automatically, including added and removed files. A configured constant version can avoid hashing for immutable release assets. See the [plugin documentation](https://github.com/bckp/translator-neon/tree/nextgen).
 
 ## Storage and diagnostics
 

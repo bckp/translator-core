@@ -18,6 +18,8 @@
 
 The core only requires PHP. NEON parsing and compiled PHP storage are separate Composer packages with a dependency on core 3.x. There is no compatibility shim for the old event/file API.
 
+The NEON source is maintained in the separate `bckp/translator-neon` repository. Its Composer package name and `Bckp\Translator\Neon` namespace are unchanged.
+
 A NEON source accepts directories and discovers only the requested locale at runtime. When moving `addFile()` registrations, keep source order explicit. Later sources override earlier ones. Keys retain the `{filename-prefix}.{message-key}` convention.
 
 Every source has a stable ID and an opaque string version. Use a new ID or namespace when changing the meaning of a source. Change the version or explicitly force a rebuild after modifying its data.

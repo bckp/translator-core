@@ -3,5 +3,4 @@ parameters:
 	phpVersion: 80400
 	paths:
 		- src
-		- packages/neon/src
 		- packages/php-cache/src
