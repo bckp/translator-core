@@ -7,7 +7,12 @@ require __DIR__ . '/bootstrap.php';
 use Tester\Assert;
 
 $path = TEMP_DIR . '/shared';
-$command = [PHP_BINARY, '-d', 'extension_dir=' . ini_get('extension_dir')];
+$command = [PHP_BINARY];
+
+if (defined('PHPDBG_VERSION')) {
+	array_push($command, '-qrrb', '-S', 'cli');
+}
+array_push($command, '-d', 'extension_dir=' . ini_get('extension_dir'));
 $configuration = php_ini_loaded_file();
 
 if ($configuration !== false) {
