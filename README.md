@@ -185,7 +185,7 @@ See [MIGRATION.md](MIGRATION.md) for the 2.x API changes.
 
 ## Quality tooling
 
-GitHub Actions runs Nette Tester on PHP 8.4 and 8.5, PHPStan level 8, PER 3 with tabs, and `composer audit`. Existing coverage checks remain in place.
+GitHub Actions runs Nette Tester on PHP 8.4 and 8.5, PHPStan level 8, PER 3 with tabs, and `composer audit`. Existing coverage checks remain in place. The audit fails on known vulnerability advisories and reports abandoned development dependencies; PHPBench currently requires the abandoned Doctrine annotations package even when benchmarks use attributes.
 
 ### API compatibility
 

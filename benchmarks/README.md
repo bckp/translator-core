@@ -4,7 +4,7 @@
 
 The compiled catalogue is prepared before the iterations and reused from the PHP cache. Diagnostics are disabled. After each iteration, the benchmark checks that neither loading source data nor checking its version occurred during translation.
 
-OPcache is enabled in worker processes and verified by the bootstrap. JIT and Xdebug are disabled; a missing OPcache extension makes the benchmark fail explicitly.
+OPcache is enabled in worker processes and verified by the bootstrap. The benchmark also verifies that the generated catalogue file is actually cached before measurement. File update protection is set to zero for these isolated benchmark workers so newly generated catalogues are optimized from the first iteration. JIT and Xdebug are disabled; a missing OPcache extension makes the benchmark fail explicitly.
 
 ## Store and compare runs
 

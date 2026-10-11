@@ -12,6 +12,7 @@ use Bckp\Translator\Sources\CallbackSource;
 use Bckp\Translator\Sources\StaticSource;
 use Bckp\Translator\Translator;
 use PhpBench\Attributes as Bench;
+use ReflectionClass;
 use RuntimeException;
 
 #[Bench\BeforeClassMethods(['warmCatalogue'])]
@@ -48,7 +49,13 @@ final class TranslationBench
 				return 'phpbench-v1';
 			},
 		);
-		$this->translator = new Translator(self::builder()->addSource('messages', $source)->compile());
+		$catalogue = self::builder()->addSource('messages', $source)->compile();
+		$file = new ReflectionClass($catalogue)->getFileName();
+
+		if ($file === false || !opcache_is_script_cached($file)) {
+			throw new RuntimeException('The compiled catalogue must be cached by OPcache before measurement.');
+		}
+		$this->translator = new Translator($catalogue);
 		$this->loads = 0;
 		$this->versions = 0;
 	}

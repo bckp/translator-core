@@ -26,7 +26,7 @@ jobs:
       - run: composer install --no-interaction --no-progress --prefer-dist
       - run: composer phpstan -- --no-progress
       - run: composer phpcs
-      - run: composer audit --no-interaction
+      - run: composer audit --no-interaction --abandoned=report
 
   tests:
     name: PHP ${{ matrix.php }} tests
