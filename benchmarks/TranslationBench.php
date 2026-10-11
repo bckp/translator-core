@@ -20,7 +20,7 @@ use RuntimeException;
 #[Bench\Revs(100000)]
 #[Bench\Iterations(10)]
 #[Bench\Warmup(10000)]
-#[Bench\OutputTimeUnit('nanoseconds')]
+#[Bench\OutputTimeUnit('microseconds')]
 final class TranslationBench
 {
 	private Translator $translator;

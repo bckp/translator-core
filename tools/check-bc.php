@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 function output(string ...$command): string
 {
-	$process = proc_open($command, [STDIN, ['pipe', 'w'], STDERR], $pipes);
+	$process = proc_open(array_values($command), [STDIN, ['pipe', 'w'], STDERR], $pipes);
 
 	if (!is_resource($process)) {
 		throw new RuntimeException('Cannot start command.');
@@ -23,9 +23,10 @@ function output(string ...$command): string
 $major = filter_var($argv[1] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
 
 if (!is_int($major)) {
-	throw new InvalidArgumentException('Usage: php tools/check-bc.php <major> [from-ref]');
+	throw new InvalidArgumentException('Usage: php tools/check-bc.php <major> [--with-dev] [from-ref]');
 }
-$baseline = $argv[2] ?? null;
+$development = ($argv[2] ?? null) === '--with-dev';
+$baseline = $argv[$development ? 3 : 2] ?? null;
 
 if ($baseline === null) {
 	foreach (explode("\n", output('git', 'tag', '--list')) as $tag) {
@@ -68,7 +69,7 @@ $format = getenv('GITHUB_ACTIONS') === 'true' ? 'github-actions' : 'console';
 
 echo "Comparing API from $baseline to HEAD.\n";
 $process = proc_open(
-	[PHP_BINARY, $binary, '--from=' . $baseline, '--to=HEAD', '--format=' . $format],
+	[PHP_BINARY, $binary, '--from=' . $baseline, '--to=HEAD', '--format=' . $format, ...($development ? ['--install-development-dependencies'] : [])],
 	[STDIN, STDOUT, STDERR],
 	$pipes,
 	$root,

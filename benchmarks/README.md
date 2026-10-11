@@ -11,7 +11,7 @@ OPcache is enabled in worker processes and verified by the bootstrap. JIT and Xd
 ```sh
 composer benchmark -- --tag=before
 # Make and commit the change on the same machine and PHP configuration.
-composer benchmark -- --baseline=before --report=aggregate --tag=after
+composer benchmark -- --ref=before --report=aggregate --tag=after
 ```
 
 Results live in the ignored `.phpbench/storage` directory. PHPBench reports dispersion across iterations; repeat noisy measurements before interpreting small differences. Compare runs on the same hardware, PHP version, dependencies and engine configuration.
