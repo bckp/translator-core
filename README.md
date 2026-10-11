@@ -175,10 +175,41 @@ Register the source before calling `compile()`. The file prefix produces keys su
 
 `MemoryStorage` is an alternative without disk persistence. Implement `Interfaces\CatalogueStorage` to provide another backend; it receives a typed `CatalogueDefinition` and returns a `Catalogue`.
 
-Compiled PHP catalogues use a private lookup map and prebuilt plural objects. Translation does no source IO, random sampling or version checks. `composer benchmark` measures plain, formatted and plural translations and asserts that source call counters do not change. See the [benchmark results](benchmarks/README.md) for the initial 2.x comparison.
+Compiled PHP catalogues use a private lookup map and prebuilt plural objects. Translation does no source IO, random sampling or version checks. `composer benchmark-simple` measures plain, formatted and plural translations and asserts that source call counters do not change. See the [benchmark results](benchmarks/README.md) for the initial 2.x comparison.
 
 An optional `Diagnostics` implementation receives missing messages, plural warnings and `CatalogueStatus` records containing the stored versions and whether initialization checked/recompiled the catalogue. Rendering diagnostics does not invoke sources.
 
 The built-in plural provider retains Czech, English-style and invariant rules and selects by the base language of normalized locales such as `cs-cz`. Override `getRule()` to choose among these rules. A different rule implementation requires extending the catalogue/storage contract.
 
 See [MIGRATION.md](MIGRATION.md) for the 2.x API changes.
+
+## Quality tooling
+
+GitHub Actions runs Nette Tester on PHP 8.4 and 8.5, PHPStan level 8, PER 3 with tabs, and `composer audit`. Existing coverage checks remain in place.
+
+### API compatibility
+
+Roave Backward Compatibility Check has isolated dependencies:
+
+```sh
+composer bc-install
+composer bc-check
+```
+
+The check compares committed HEAD against the highest stable `3.x.y` or `v3.x.y` tag. Prereleases and older majors are excluded. Until the first stable 3.x release, it explicitly reports that no baseline exists. CI also compares HEAD with itself to verify the checker and local dependency resolution before that release.
+
+Use `composer bc-check -- <tag-or-commit>` for an explicit baseline. Keep sibling repositories available as described above; they are linked into the checker's temporary directory. Temporary comparisons are stored under the ignored `temp/` directory. Uncommitted changes are not checked.
+
+### Dependency updates
+
+`renovate.json` groups development dependencies and GitHub Actions updates, checks the default branch and `nextgen`, and schedules updates before 07:00 Europe/Prague on Mondays. Automatic merging is disabled. CI validates this configuration using the official Renovate validator.
+
+The hosted Renovate GitHub App must be enabled for the repository. It discovers configuration on the default branch, so this file must also be present there before activation while `nextgen` is a separate development branch.
+
+### Mutation testing
+
+Infection is deferred because it does not directly support Nette Tester. Adoption will be considered together with a possible move to PHPUnit.
+
+### Performance
+
+`composer benchmark` runs PHPBench with attributes, warmed compiled PHP catalogues, OPcache enabled and JIT/Xdebug disabled. It verifies that translations never call a source loader or version callback. See [benchmark instructions](benchmarks/README.md) for storing and comparing results. CI uploads results separately for PHP 8.4 and 8.5; timing differences are informational.

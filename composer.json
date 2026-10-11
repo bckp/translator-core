@@ -8,7 +8,7 @@
     "license": "BSD-3-Clause",
     "authors": [
         {
-            "name": "Radovan Kep\u00e1k",
+            "name": "Radovan Kepák",
             "homepage": "https://kepak.dev"
         }
     ],
@@ -31,7 +31,10 @@
         "psalm": "psalm",
         "phpcs": "PHP_CS_FIXER_IGNORE_ENV=1 php-cs-fixer check --sequential",
         "phpcs-fix": "PHP_CS_FIXER_IGNORE_ENV=1 php-cs-fixer fix --sequential",
-        "benchmark": "php benchmarks/translate.php"
+        "benchmark": "phpbench run --report=aggregate",
+        "bc-install": "composer --working-dir=tools/bc install --no-interaction --no-progress --prefer-dist",
+        "bc-check": "@php tools/check-bc.php 3",
+        "benchmark-simple": "php benchmarks/translate.php"
     },
     "require-dev": {
         "roave/security-advisories": "dev-latest",
@@ -40,7 +43,8 @@
         "nette/tester": "^2.5",
         "friendsofphp/php-cs-fixer": "^3.95",
         "vimeo/psalm": "^6.5",
-        "bckp/translator-php-cache": "@dev"
+        "bckp/translator-php-cache": "@dev",
+        "phpbench/phpbench": "^1.7"
     },
     "repositories": [
         {

@@ -1,14 +1,30 @@
-# Translation benchmark
+# Translation benchmarks
 
-Run `composer benchmark`, or increase the number of translations in each round:
+`composer benchmark` uses PHPBench for plain, formatted and Czech plural translations. Each case has 10 independent iterations, 100,000 translations per iteration and 10,000 warmup translations. Catalogue preparation is outside the measured translation path.
+
+The compiled catalogue is prepared before the iterations and reused from the PHP cache. Diagnostics are disabled. After each iteration, the benchmark checks that neither loading source data nor checking its version occurred during translation.
+
+OPcache is enabled in worker processes and verified by the bootstrap. JIT and Xdebug are disabled; a missing OPcache extension makes the benchmark fail explicitly.
+
+## Store and compare runs
+
+```sh
+composer benchmark -- --tag=before
+# Make and commit the change on the same machine and PHP configuration.
+composer benchmark -- --baseline=before --report=aggregate --tag=after
+```
+
+Results live in the ignored `.phpbench/storage` directory. PHPBench reports dispersion across iterations; repeat noisy measurements before interpreting small differences. Compare runs on the same hardware, PHP version, dependencies and engine configuration.
+
+GitHub Actions runs benchmarks on PHP 8.4 and 8.5 and uploads XML results and stored runs for 30 days. Time differences do not gate PRs on shared runners; execution errors, missing OPcache and unexpected source calls fail the job.
+
+## Lightweight benchmark
+
+The original standalone script remains available as `composer benchmark-simple`, or:
 
 ```sh
 php -d opcache.enable_cli=1 benchmarks/translate.php 1000000
 ```
-
-The script runs five rounds per case and reports the median in nanoseconds per translation. It measures a warm compiled catalogue with diagnostics disabled and checks that neither the source loader nor its version callback runs during translation.
-
-The script prints the PHP version and the actual OPcache and JIT status. Setting `opcache.enable_cli=1` only enables OPcache when its extension is loaded.
 
 The initial 3.0 comparison used PHP 8.4.26 with OPcache disabled on the same machine, sequentially, with five rounds of 1,000,000 translations per case. It was initially described incorrectly as having OPcache enabled: the extension was installed but not loaded. The 2.x source was taken from commit `ab20317018670b96993b0b36f379d9f3b9cd0505` and used the same messages, parameters and loop.
 

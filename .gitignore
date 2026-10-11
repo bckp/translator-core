@@ -4,3 +4,7 @@
 /composer.lock
 .php-cs-fixer.cache
 /tests/output
+/tools/bc/vendor
+/tools/bc/composer.lock
+/.phpbench
+/benchmark.xml
