@@ -64,7 +64,9 @@ echo $translator->translate('messages.people', 4);
 
 A `MessageCatalogue` only accepts a string or a `PluralMessage`. A plural message has named, nullable string variants and must contain at least one variant. Empty translations and the key/value `"0"` are valid. A missing key returns the original message; a missing plural variant falls back to another defined variant and can be reported through diagnostics.
 
-A runtime `Catalogue::get(string $key, float|int|string|null $number = null, ?Diagnostics $diagnostics = null): ?string` returns the selected text, including its fallback, or `null` for an unknown key. Ordinary messages ignore the number. Only plural entries inspect the quantity: numeric values are converted to integers for the locale's rule, while omitted or nonnumeric values select `Other`. Optional diagnostics report missing plural forms without changing the shared catalogue. The translator forwards the first formatting parameter unchanged.
+A runtime `Catalogue::get(string $key, float|int|string|null $number = null): ?string` returns the selected text, including its fallback, or `null` for an unknown key. Ordinary messages ignore the number. Only plural entries inspect the quantity: numeric values are converted to integers for the locale's rule, while omitted or nonnumeric values select `Other`. The translator forwards the first formatting parameter unchanged.
+
+`Catalogue::missingPluralForm()` accepts the same key and quantity and returns the missing `Plural` category, or `null` for a defined form, ordinary text or unknown key. It does not report anything or mutate the catalogue. When diagnostics are enabled, the translator uses a `DiagnosticCatalogue` wrapper to report unknown keys and missing forms. The production translation path contains no diagnostics checks.
 
 Sources merge in registration order: the last source wins for an identical key. `StaticSource` snapshots its input. Storage also snapshots the definition, so later edits to source messages do not change a live catalogue.
 

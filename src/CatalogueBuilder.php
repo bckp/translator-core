@@ -122,7 +122,7 @@ final class CatalogueBuilder
 	private function cacheKey(PluralRule $rule): string
 	{
 		return hash('sha256', serialize([
-			'format' => 4,
+			'format' => 5,
 			'namespace' => $this->namespace,
 			'locale' => $this->locale,
 			'rule' => $rule->value,

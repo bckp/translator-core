@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Bckp\Translator;
 
-use Bckp\Translator\Interfaces\Diagnostics;
-
 abstract class Catalogue
 {
 	public function __construct(
@@ -14,7 +12,9 @@ abstract class Catalogue
 		public readonly SourceVersions $versions,
 	) {}
 
-	abstract public function get(string $key, float|int|string|null $number = null, ?Diagnostics $diagnostics = null): ?string;
+	abstract public function get(string $key, float|int|string|null $number = null): ?string;
+
+	abstract public function missingPluralForm(string $key, float|int|string|null $number = null): ?Plural;
 
 	abstract public function has(string $key): bool;
 

@@ -83,7 +83,7 @@ final readonly class PhpCatalogueStorage implements CatalogueStorage
 
 	private function filename(string $key): string
 	{
-		return $this->path . '/' . hash('sha256', '4:' . $key) . '.php';
+		return $this->path . '/' . hash('sha256', '5:' . $key) . '.php';
 	}
 
 	private function compile(CatalogueDefinition $definition): string
@@ -98,7 +98,7 @@ final readonly class PhpCatalogueStorage implements CatalogueStorage
 
 				return;
 			}
-			$messages .= "\t\t\t\t" . $exportedKey . ' => $this->resolvePlural($key, $number, $diagnostics),' . "\n";
+			$messages .= "\t\t\t\t" . $exportedKey . ' => $this->resolvePlural($key, $number),' . "\n";
 			$plurals .= "\t\t\t" . $exportedKey . " => [\n";
 			foreach (Plural::cases() as $plural) {
 				$variant = $value->select($plural);
@@ -141,12 +141,25 @@ final readonly class PhpCatalogueStorage implements CatalogueStorage
 					}
 
 					#[\Override]
-					public function get(string $key, float|int|string|null $number = null, ?\Bckp\Translator\Interfaces\Diagnostics $diagnostics = null): ?string
+					public function get(string $key, float|int|string|null $number = null): ?string
 					{
 						return match ($key) {
 			__MESSAGES__
 							default => null,
 						};
+					}
+
+					#[\Override]
+					public function missingPluralForm(string $key, float|int|string|null $number = null): ?\Bckp\Translator\Plural
+					{
+						$message = self::PLURALS[$key] ?? null;
+
+						if ($message === null) {
+							return null;
+						}
+						$plural = is_numeric($number) ? $this->plural((int) $number) : \Bckp\Translator\Plural::Other;
+
+						return isset($message[$plural->value]) ? null : $plural;
 					}
 
 					#[\Override]
@@ -161,17 +174,11 @@ final readonly class PhpCatalogueStorage implements CatalogueStorage
 						return \Bckp\Translator\PluralProvider::__PLURAL_METHOD__($number);
 					}
 
-					private function resolvePlural(string $key, float|int|string|null $number, ?\Bckp\Translator\Interfaces\Diagnostics $diagnostics): string
+					private function resolvePlural(string $key, float|int|string|null $number): string
 					{
 						$message = self::PLURALS[$key];
 						$plural = is_numeric($number) ? $this->plural((int) $number) : \Bckp\Translator\Plural::Other;
-						$translation = $message[$plural->value] ?? null;
-
-						if ($translation === null) {
-							$diagnostics?->warning("Plural form not defined. (message: $key, form: {$plural->value})");
-						}
-
-						return $translation ?? $message['fallback'];
+						return $message[$plural->value] ?? $message['fallback'];
 					}
 				}
 			}

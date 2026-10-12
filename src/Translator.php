@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Bckp\Translator;
 
 use Bckp\Translator\Exceptions\TranslatorException;
+use Bckp\Translator\Diagnostics\DiagnosticCatalogue;
 use Bckp\Translator\Interfaces\Diagnostics;
 use Closure;
 use Stringable;
@@ -24,7 +25,10 @@ final class Translator implements Interfaces\Translator
 		private readonly ?Diagnostics $diagnostics = null,
 	) {
 		$this->normalizeCallback = self::normalize(...);
-		$this->diagnostics?->setLocale($catalogue->locale);
+
+		if ($diagnostics !== null) {
+			$this->catalogue = new DiagnosticCatalogue($catalogue, $diagnostics);
+		}
 	}
 
 	public static function normalize(string $string): string
@@ -54,7 +58,7 @@ final class Translator implements Interfaces\Translator
 		if ($catalogue->locale !== $this->catalogue->locale) {
 			throw new TranslatorException('A replacement catalogue must use the same locale.');
 		}
-		$this->catalogue = $catalogue;
+		$this->catalogue = $this->diagnostics === null ? $catalogue : new DiagnosticCatalogue($catalogue, $this->diagnostics);
 	}
 
 	#[\Override]
@@ -66,19 +70,13 @@ final class Translator implements Interfaces\Translator
 			return '';
 		}
 
-		if ($parameters === [] && $this->diagnostics === null) {
+		if ($parameters === []) {
 			return $this->catalogue->get($message) ?? $message;
 		}
-		$translation = $this->catalogue->get($message, $parameters[0] ?? null, $this->diagnostics);
+		$translation = $this->catalogue->get($message, $parameters[0] ?? null);
 
 		if ($translation === null) {
-			$this->diagnostics?->untranslated($message);
-
 			return $message;
-		}
-
-		if ($parameters === []) {
-			return $translation;
 		}
 
 		$translation = ($this->normalizeCallback)($translation);

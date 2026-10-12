@@ -5,6 +5,7 @@ declare(strict_types=1);
 require __DIR__ . '/bootstrap.php';
 
 use Bckp\Translator\CatalogueBuilder;
+use Bckp\Translator\Diagnostics\DiagnosticCatalogue;
 use Bckp\Translator\Diagnostics\Diagnostics;
 use Bckp\Translator\MessageCatalogue;
 use Bckp\Translator\PhpCache\PhpCatalogueStorage;
@@ -57,9 +58,10 @@ foreach ([new MemoryStorage(), new PhpCatalogueStorage(TEMP_DIR . '/catalogues')
 	Assert::same('3 people', $plain->translate('people', 3));
 
 	$diagnostics = new Diagnostics();
-	Assert::same('on', $catalogue->get('options', 3, $diagnostics));
+	$debug = new DiagnosticCatalogue($catalogue, $diagnostics);
+	Assert::same('on', $debug->get('options', 3));
 	Assert::same('Plural form not defined. (message: options, form: few)', $diagnostics->getWarnings()->first());
-	Assert::same('on', $catalogue->get('options', diagnostics: $diagnostics));
+	Assert::same('on', $debug->get('options'));
 	Assert::same(2, $diagnostics->getWarnings()->count());
 
 	$first = new Translator($catalogue, new Diagnostics());

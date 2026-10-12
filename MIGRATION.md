@@ -28,7 +28,9 @@ Every source has a stable ID and an opaque string version. Use a new ID or names
 
 Source loaders return `MessageCatalogue`. Entries are `string|PluralMessage`; raw arrays, numbers, booleans and nested maps are rejected. At an external boundary such as a database or NEON decoder, validate data and convert it into these objects.
 
-Runtime catalogue implementations expose `get(string $key, float|int|string|null $number = null, ?Diagnostics $diagnostics = null): ?string`. They resolve plural variants and fallbacks internally; `PluralMessage` remains the source-input type. Numeric quantities are cast to integers only for plural entries; other values select `Other`. Missing keys return `null`, while missing plural forms return their fallback and report a warning when diagnostics are provided. Update custom catalogue implementations to this signature. The builder and PHP storage use new format keys so older compiled signatures are never loaded.
+Runtime catalogue implementations expose `get(string $key, float|int|string|null $number = null): ?string`. They resolve plural variants and fallbacks internally; `PluralMessage` remains the source-input type. Numeric quantities are cast to integers only for plural entries; other values select `Other`. Missing keys return `null`, while missing plural forms return their fallback.
+
+Implement `missingPluralForm(string $key, float|int|string|null $number = null): ?Plural` as a separate, side-effect-free diagnostic lookup. It returns the selected category only when a plural message lacks that form; ordinary text, unknown keys and defined forms return `null`. Translator wraps the catalogue in `DiagnosticCatalogue` when given diagnostics, including after `replaceCatalogue()`. Direct callers that need reporting can use the same wrapper. The getter no longer accepts a diagnostics argument. Builder and PHP storage format keys change so older compiled classes are excluded before being included.
 
 Core translation parameters are `string|int|float`. The Nette adapter retains Nette's `mixed` parameter contract and normalizes scalar, null and `Stringable` values; arrays and other objects throw.
 
