@@ -129,7 +129,7 @@ final readonly class PhpCatalogueStorage implements CatalogueStorage
 			if (!class_exists(Generated__HASH__::class, false)) {
 				final class Generated__HASH__ extends \Bckp\Translator\Catalogue
 				{
-					private const array PLURALS = [
+					private const array Plurals = [
 			__PLURALS__
 					];
 
@@ -152,7 +152,7 @@ final readonly class PhpCatalogueStorage implements CatalogueStorage
 					#[\Override]
 					public function missingPluralForm(string $key, float|int|string|null $number = null): ?\Bckp\Translator\Plural
 					{
-						$message = self::PLURALS[$key] ?? null;
+						$message = self::Plurals[$key] ?? null;
 
 						if ($message === null) {
 							return null;
@@ -176,7 +176,7 @@ final readonly class PhpCatalogueStorage implements CatalogueStorage
 
 					private function resolvePlural(string $key, float|int|string|null $number): string
 					{
-						$message = self::PLURALS[$key];
+						$message = self::Plurals[$key];
 						$plural = is_numeric($number) ? $this->plural((int) $number) : \Bckp\Translator\Plural::Other;
 						return $message[$plural->value] ?? $message['fallback'];
 					}
