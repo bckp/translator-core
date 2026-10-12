@@ -1,0 +1,8 @@
+parameters:
+	level: 8
+	phpVersion: 80400
+	paths:
+		- src
+		- packages/php-cache/src
+		- tools/check-bc.php
+		- benchmarks

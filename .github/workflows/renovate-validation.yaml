@@ -1,0 +1,23 @@
+name: Renovate configuration
+
+on:
+  push:
+    branches: [nextgen]
+    paths: [renovate.json, .github/workflows/renovate-validation.yaml]
+  pull_request:
+    branches: [nextgen]
+    paths: [renovate.json, .github/workflows/renovate-validation.yaml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npx --yes --package=renovate@44.150.1 renovate-config-validator --strict renovate.json

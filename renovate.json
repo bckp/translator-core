@@ -1,0 +1,39 @@
+{
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": [
+        "config:recommended"
+    ],
+    "baseBranchPatterns": [
+        "$default",
+        "nextgen"
+    ],
+    "timezone": "Europe/Prague",
+    "schedule": [
+        "before 7am on monday"
+    ],
+    "prConcurrentLimit": 3,
+    "automerge": false,
+    "packageRules": [
+        {
+            "matchManagers": [
+                "composer"
+            ],
+            "matchDepTypes": [
+                "require-dev"
+            ],
+            "groupName": "development dependencies"
+        },
+        {
+            "matchManagers": [
+                "github-actions"
+            ],
+            "groupName": "GitHub Actions"
+        },
+        {
+            "matchFileNames": [
+                "tools/bc/composer.json"
+            ],
+            "groupName": "API compatibility tooling"
+        }
+    ]
+}
