@@ -52,4 +52,5 @@ Assert::same('', $loaded->get('empty'));
 Assert::true($loaded->has('empty'));
 Assert::false($loaded->has('missing'));
 Assert::same(Plural::Few, $loaded->plural(3));
-Assert::type(PluralMessage::class, $loaded->get('people'));
+Assert::same('%d people', $loaded->get('people'));
+Assert::same('%d person', $loaded->get('people', 1));

@@ -21,9 +21,9 @@ $builder = new CatalogueBuilder(
 
 Construction performs no IO. Missing, unreadable or invalid cache files return a cache miss. A write creates the directory as needed, compiles typed messages into PHP, validates the temporary file, and publishes it by atomic rename. Failed writes throw and temporary files are cleaned up.
 
-Cache file names are hashes of the builder's stable storage key. Source versions and build metadata are embedded in the compiled catalogue. Generated class names are content hashes, allowing a forced rebuild to replace a catalogue even with an unchanged source version in the same process.
+Cache file names are hashes of the storage format version and the builder's stable storage key. Source versions and build metadata are embedded in the compiled catalogue. Generated class names are content hashes, allowing a forced rebuild to replace a catalogue even with an unchanged source version in the same process. Older files are ignored when the storage format changes.
 
-The compiled class uses a private lookup map, shared prebuilt plural objects and a direct plural selector. Text and metadata are exported as PHP literals. OPcache entries are invalidated after replacement. Concurrent writers publish complete catalogues; readers can observe either completed revision.
+The compiled class returns ordinary texts directly from a generated `match` and stores plural strings in a constant map. `get()` returns `string|null` and takes an optional quantity and diagnostics. Only plural entries inspect the quantity: numeric values are converted to integers for the locale's rule, while omitted or nonnumeric values select `Other`. Fallback warnings are preserved when diagnostics are supplied. No `PluralMessage` objects are created by the compiled file. Text and metadata are exported as PHP literals. OPcache entries are invalidated after replacement. Concurrent writers publish complete catalogues; readers can observe either completed revision.
 
 Use a directory dedicated to generated cache files and writable by PHP. Like any executable PHP cache, it must not be writable by untrusted users. No source data is loaded while using a warm cache whose verification was skipped.
 

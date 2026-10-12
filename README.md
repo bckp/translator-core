@@ -64,6 +64,8 @@ echo $translator->translate('messages.people', 4);
 
 A `MessageCatalogue` only accepts a string or a `PluralMessage`. A plural message has named, nullable string variants and must contain at least one variant. Empty translations and the key/value `"0"` are valid. A missing key returns the original message; a missing plural variant falls back to another defined variant and can be reported through diagnostics.
 
+A runtime `Catalogue::get(string $key, float|int|string|null $number = null, ?Diagnostics $diagnostics = null): ?string` returns the selected text, including its fallback, or `null` for an unknown key. Ordinary messages ignore the number. Only plural entries inspect the quantity: numeric values are converted to integers for the locale's rule, while omitted or nonnumeric values select `Other`. Optional diagnostics report missing plural forms without changing the shared catalogue. The translator forwards the first formatting parameter unchanged.
+
 Sources merge in registration order: the last source wins for an identical key. `StaticSource` snapshots its input. Storage also snapshots the definition, so later edits to source messages do not change a live catalogue.
 
 ## Callback sources and mandatory versions
@@ -175,7 +177,7 @@ Register the source before calling `compile()`. The file prefix produces keys su
 
 `MemoryStorage` is an alternative without disk persistence. Implement `Interfaces\CatalogueStorage` to provide another backend; it receives a typed `CatalogueDefinition` and returns a `Catalogue`.
 
-Compiled PHP catalogues use a private lookup map and prebuilt plural objects. Translation does no source IO, random sampling or version checks. `composer benchmark-simple` measures plain, formatted and plural translations and asserts that source call counters do not change. See the [benchmark results](benchmarks/README.md) for the initial 2.x comparison.
+Compiled PHP catalogues return ordinary texts directly from a generated `match` and keep plural strings in a constant map. They create no `PluralMessage` objects at runtime and inspect quantities only for plural entries. Translation does no source IO, random sampling or version checks. `composer benchmark-simple` measures plain, formatted and plural translations and asserts that source call counters do not change. See the [benchmark results](benchmarks/README.md) for the initial 2.x comparison.
 
 An optional `Diagnostics` implementation receives missing messages, plural warnings and `CatalogueStatus` records containing the stored versions and whether initialization checked/recompiled the catalogue. Rendering diagnostics does not invoke sources.
 

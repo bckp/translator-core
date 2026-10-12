@@ -7,6 +7,7 @@ namespace Bckp\Translator\PhpCache;
 use Bckp\Translator\Catalogue;
 use Bckp\Translator\CatalogueDefinition;
 use Bckp\Translator\Interfaces\CatalogueStorage;
+use Bckp\Translator\Plural;
 use Bckp\Translator\PluralMessage;
 use Bckp\Translator\PluralRule;
 use Bckp\Translator\SourceVersion;
@@ -82,24 +83,35 @@ final readonly class PhpCatalogueStorage implements CatalogueStorage
 
 	private function filename(string $key): string
 	{
-		return $this->path . '/' . hash('sha256', $key) . '.php';
+		return $this->path . '/' . hash('sha256', '4:' . $key) . '.php';
 	}
 
 	private function compile(CatalogueDefinition $definition): string
 	{
 		$messages = '';
-		$initialization = '';
-		$definition->messages->each(function (string $key, string|PluralMessage $value) use (&$messages, &$initialization): void {
+		$plurals = '';
+		$definition->messages->each(static function (string $key, string|PluralMessage $value) use (&$messages, &$plurals): void {
 			$exportedKey = var_export($key, true);
-			$messages .= $exportedKey . ' => ' . (is_string($value) ? var_export($value, true) : 'null') . ",\n";
 
-			if ($value instanceof PluralMessage) {
-				$initialization .= 'self::$messages[' . $exportedKey . '] = ' . $this->pluralCode($value) . ";\n";
+			if (is_string($value)) {
+				$messages .= "\t\t\t\t" . $exportedKey . ' => ' . var_export($value, true) . ",\n";
+
+				return;
 			}
+			$messages .= "\t\t\t\t" . $exportedKey . ' => $this->resolvePlural($key, $number, $diagnostics),' . "\n";
+			$plurals .= "\t\t\t" . $exportedKey . " => [\n";
+			foreach (Plural::cases() as $plural) {
+				$variant = $value->select($plural);
+
+				if ($variant !== null) {
+					$plurals .= "\t\t\t\t" . var_export($plural->value, true) . ' => ' . var_export($variant, true) . ",\n";
+				}
+			}
+			$plurals .= "\t\t\t\t'fallback' => " . var_export($value->fallback, true) . ",\n\t\t\t],\n";
 		});
 		$versions = '';
 		$definition->versions->each(static function (SourceVersion $version) use (&$versions): void {
-			$versions .= 'new \Bckp\Translator\SourceVersion(' . var_export($version->id, true)
+			$versions .= "\t\t\t\t" . 'new \Bckp\Translator\SourceVersion(' . var_export($version->id, true)
 				. ', ' . var_export($version->version, true) . "),\n";
 		});
 		$pluralMethod = match ($definition->pluralRule) {
@@ -117,32 +129,30 @@ final readonly class PhpCatalogueStorage implements CatalogueStorage
 			if (!class_exists(Generated__HASH__::class, false)) {
 				final class Generated__HASH__ extends \Bckp\Translator\Catalogue
 				{
-					private static array $messages = [
-			__MESSAGES__
+					private const array PLURALS = [
+			__PLURALS__
 					];
-					private static bool $initialized = false;
 
 					public function __construct()
 					{
 						parent::__construct(__LOCALE__, __BUILD__, new \Bckp\Translator\SourceVersions(
 			__VERSIONS__
 						));
-						if (!self::$initialized) {
-			__INITIALIZATION__
-							self::$initialized = true;
-						}
 					}
 
 					#[\Override]
-					public function get(string $key): string|\Bckp\Translator\PluralMessage|null
+					public function get(string $key, float|int|string|null $number = null, ?\Bckp\Translator\Interfaces\Diagnostics $diagnostics = null): ?string
 					{
-						return self::$messages[$key] ?? null;
+						return match ($key) {
+			__MESSAGES__
+							default => null,
+						};
 					}
 
 					#[\Override]
 					public function has(string $key): bool
 					{
-						return array_key_exists($key, self::$messages);
+						return $this->get($key) !== null;
 					}
 
 					#[\Override]
@@ -150,32 +160,34 @@ final readonly class PhpCatalogueStorage implements CatalogueStorage
 					{
 						return \Bckp\Translator\PluralProvider::__PLURAL_METHOD__($number);
 					}
+
+					private function resolvePlural(string $key, float|int|string|null $number, ?\Bckp\Translator\Interfaces\Diagnostics $diagnostics): string
+					{
+						$message = self::PLURALS[$key];
+						$plural = is_numeric($number) ? $this->plural((int) $number) : \Bckp\Translator\Plural::Other;
+						$translation = $message[$plural->value] ?? null;
+
+						if ($translation === null) {
+							$diagnostics?->warning("Plural form not defined. (message: $key, form: {$plural->value})");
+						}
+
+						return $translation ?? $message['fallback'];
+					}
 				}
 			}
 
 			return new Generated__HASH__();
 			PHP;
 		$values = [
-			'__MESSAGES__' => $messages,
-			'__INITIALIZATION__' => $initialization,
+			'__MESSAGES__' => rtrim($messages, "\n"),
+			'__PLURALS__' => rtrim($plurals, "\n"),
 			'__LOCALE__' => var_export($definition->locale, true),
 			'__BUILD__' => (string) $definition->build,
-			'__VERSIONS__' => $versions,
+			'__VERSIONS__' => rtrim($versions, "\n"),
 			'__PLURAL_METHOD__' => $pluralMethod,
 		];
 		$values['__HASH__'] = hash('sha256', strtr($template, $values));
 
-		return strtr($template, $values);
-	}
-
-	private function pluralCode(PluralMessage $message): string
-	{
-		return 'new \Bckp\Translator\PluralMessage('
-			. 'zero: ' . var_export($message->zero, true) . ', '
-			. 'one: ' . var_export($message->one, true) . ', '
-			. 'two: ' . var_export($message->two, true) . ', '
-			. 'few: ' . var_export($message->few, true) . ', '
-			. 'many: ' . var_export($message->many, true) . ', '
-			. 'other: ' . var_export($message->other, true) . ')';
+		return strtr($template, $values) . "\n";
 	}
 }

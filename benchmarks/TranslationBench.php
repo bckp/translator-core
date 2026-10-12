@@ -70,6 +70,16 @@ final class TranslationBench
 		$this->translator->translate('messages.format', 'Ada');
 	}
 
+	public function benchFormattedNumber(): void
+	{
+		$this->translator->translate('messages.count', 3);
+	}
+
+	public function benchMissing(): void
+	{
+		$this->translator->translate('messages.missing');
+	}
+
 	public function benchPlural(): void
 	{
 		$this->translator->translate('messages.people', 3);
@@ -96,6 +106,7 @@ final class TranslationBench
 		return new MessageCatalogue()
 			->add('messages.hello', 'Hello')
 			->add('messages.format', 'Hello %s')
+			->add('messages.count', '%d items')
 			->add('messages.people', new PluralMessage(
 				zero: 'nobody',
 				one: '%d person',
