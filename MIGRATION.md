@@ -7,7 +7,7 @@
 | 2.x | 3.0 |
 | --- | --- |
 | `new CatalogueBuilder($plural, $path, $locale)` | `new CatalogueBuilder($storage, $locale, $plural)` |
-| Core writes cache files | `PhpCatalogueStorage` plugin writes compiled PHP |
+| Builder writes cache files | Bundled `PhpCatalogueStorage` writes compiled PHP through the storage interface |
 | `addFile()` | `addSource($id, new NeonSource($directory))` |
 | `addDynamic()` with a mutable array | `CallbackSource` or `TranslationSource`, returning `MessageCatalogue` |
 | Optional `addCheckCallback()` | Mandatory `getVersion($locale): string` |
@@ -21,7 +21,7 @@
 | `Catalogue::locale()` and `build()` | Use the `locale` and `build` properties |
 | `setNormalizeCallback(callable)` | `setNormalizeCallback(Closure)`; convert with first-class callable syntax or `Closure::fromCallable()` |
 
-The core only requires PHP. NEON parsing and compiled PHP storage are separate Composer packages with a dependency on core 3.x. There is no compatibility shim for the old event/file API.
+The core requires PHP 8.4+ and the tokenizer extension, with no third-party runtime dependencies. Compiled PHP storage is included in core 3.x under `Bckp\Translator\PhpCache`; it requires no separate Composer package. NEON parsing remains a separate Composer package. There is no compatibility shim for the old event/file API.
 
 The NEON source is maintained in the separate `bckp/translator-neon` repository. Its Composer package name and `Bckp\Translator\Neon` namespace are unchanged.
 

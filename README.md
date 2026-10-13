@@ -1,6 +1,6 @@
 # Bckp Translator 3.0
 
-A small PHP 8.4+ translator with versioned sources and a compiled hot path. The core has no filesystem or framework dependency. It accepts typed translation sources and delegates cache persistence to a storage interface.
+A small PHP 8.4+ translator with versioned sources and a compiled hot path. The translator and catalogue builder use typed source and storage interfaces without accessing files directly. Compiled PHP storage is included; NEON parsing and Nette integration are optional packages.
 
 This is the `nextgen` development branch for the breaking 3.0 release.
 
@@ -8,12 +8,11 @@ This is the `nextgen` development branch for the breaking 3.0 release.
 
 | Package | Responsibility |
 | --- | --- |
-| `bckp/translator-core` | Typed messages, source contracts, version checks, catalogue building and translation |
+| `bckp/translator-core` | Typed messages, source contracts, version checks, catalogue building, translation and compiled PHP storage |
 | `bckp/translator-neon` | NEON source plugin, in its [own repository](https://github.com/bckp/translator-neon) |
-| `bckp/translator-php-cache` | Compiled PHP storage plugin, in [`packages/php-cache`](packages/php-cache) |
 | `bckp/translator-nette` | Nette DI, locale resolution, Latte and Tracy integration ([manual](https://github.com/bckp/translator-nette/blob/nextgen/README.md)) |
 
-The plugins are separate Composer packages. The PHP-cache plugin is developed in `packages/php-cache` and installed locally through Composer. The NEON plugin has its own repository, tests and quality checks; it is not required to develop or test the core.
+PHP storage is part of `bckp/translator-core` in [`src/PhpCache`](src/PhpCache), with its [storage manual](docs/php-cache.md). It needs no separate package or repository. The NEON plugin and Nette adapter have their own Composer packages and repositories; neither is required to develop or test the core.
 
 ```sh
 COMPOSER_ROOT_VERSION=3.0.x-dev composer install
@@ -27,7 +26,7 @@ PHPStan runs at level 8. Source code uses native types, strict types and attribu
 
 ## Installation during development
 
-The 3.0 packages are not released yet. To run the standalone PHP-cache examples, check out this branch and install its development dependencies:
+The 3.0 packages are not released yet. To run the examples, check out this branch and install its development dependencies:
 
 ```sh
 git clone --branch nextgen https://github.com/bckp/translator-core.git
@@ -35,7 +34,7 @@ cd translator-core
 COMPOSER_ROOT_VERSION=3.0.x-dev composer install
 ```
 
-This checkout installs the PHP-cache package through its local path repository. PHP 8.4+ and the tokenizer extension are required for that plugin. The core itself only requires PHP; `MemoryStorage` needs no cache plugin.
+The core requires PHP 8.4+ and the tokenizer extension, used when compiling a plural rule. It has no third-party runtime dependencies. Both `PhpCatalogueStorage` and `MemoryStorage` are included and autoloaded from this package.
 
 For NEON files, also check out the [NEON plugin's matching branch](https://github.com/bckp/translator-neon/blob/nextgen/README.md). For Nette, follow the [adapter's installation and configuration](https://github.com/bckp/translator-nette/blob/nextgen/README.md). An application's Composer configuration must declare its own development/path repositories; Composer does not inherit repositories from dependencies.
 
@@ -237,7 +236,7 @@ Register the source before calling `compile()`. The file prefix produces keys su
 
 Compiled PHP catalogues return ordinary texts directly from a generated `match` and keep plural strings in `private const array Plurals`. They create no `PluralMessage` objects at runtime and inspect quantities only for plural entries. Translation does no source IO, random sampling or version checks. `composer benchmark-simple` measures plain, formatted and plural translations and asserts that source call counters do not change. See the [current v2 comparison and benchmark instructions](benchmarks/README.md) for PHP 8.4 and 8.5 results, including the generated catalogue's OPcache memory cost.
 
-The PHP cache plugin copies the selected plural rule's body from `PluralProvider` at compilation. The compiled catalogue then selects plurals directly, without calling the provider. Rebuilding captures any later change to that rule.
+The PHP storage copies the selected plural rule's body from `PluralProvider` at compilation. The compiled catalogue then selects plurals directly, without calling the provider. Rebuilding captures any later change to that rule.
 
 An optional `Diagnostics` implementation receives missing messages, plural warnings and `CatalogueStatus` records containing the stored versions and whether initialization checked/recompiled the catalogue. Rendering diagnostics does not invoke sources.
 

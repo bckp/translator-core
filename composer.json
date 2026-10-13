@@ -13,7 +13,8 @@
         }
     ],
     "require": {
-        "php": "^8.4"
+        "php": "^8.4",
+        "ext-tokenizer": "*"
     },
     "suggest": {
         "bckp/translator-neon": "For versioned NEON translation sources",
@@ -43,24 +44,12 @@
         "nette/tester": "^2.5",
         "friendsofphp/php-cs-fixer": "^3.95",
         "vimeo/psalm": "^6.5",
-        "bckp/translator-php-cache": "@dev",
         "phpbench/phpbench": "^1.7"
     },
-    "repositories": [
-        {
-            "type": "path",
-            "url": "packages/*",
-            "options": {
-                "symlink": true,
-                "versions": {
-                    "bckp/translator-php-cache": "1.0.0"
-                }
-            }
-        }
-    ],
     "extra": {
         "branch-alias": {
-            "dev-nextgen": "3.0.x-dev"
+            "dev-nextgen": "3.0.x-dev",
+            "dev-main": "3.0.x-dev"
         }
     }
 }

@@ -45,3 +45,5 @@ Negative changes mean faster execution. Plural selection improved in both runs o
 Cache format 6 excludes older files before including them, ensuring existing deployments rebuild with the embedded rules. The method body participates in the generated class hash. Later provider changes are captured when the catalogue is rebuilt.
 
 The embedded plural rules are now part of `nextgen`. The `nextgen-inline-plural` branch retains the measured experiment revision, and the baseline commit above preserves the earlier implementation for comparison.
+
+PHP storage is now included in core under `src/PhpCache`. The separate package layout described during this experiment has been replaced; the generated runtime code is unchanged.

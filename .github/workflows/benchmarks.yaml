@@ -2,9 +2,9 @@ name: Benchmarks
 
 on:
   push:
-    branches: [nextgen]
+    branches: [main, nextgen]
   pull_request:
-    branches: [nextgen]
+    branches: [main, nextgen]
   workflow_dispatch:
 
 permissions:

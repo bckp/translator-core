@@ -2,10 +2,10 @@ name: Renovate configuration
 
 on:
   push:
-    branches: [nextgen]
+    branches: [main, nextgen]
     paths: [renovate.json, .github/workflows/renovate-validation.yaml]
   pull_request:
-    branches: [nextgen]
+    branches: [main, nextgen]
     paths: [renovate.json, .github/workflows/renovate-validation.yaml]
   workflow_dispatch:
 
