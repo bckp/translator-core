@@ -15,6 +15,11 @@
 | Debug compilation repeatedly checks | Once on catalogue initialization per builder scope |
 | Array plural variants | `new PluralMessage(one: '...', other: '...')` |
 | `PluralProvider::getPlural()` callable | `PluralProvider::getRule()` returning `PluralRule` |
+| `Catalogue::get($key): array\|string` | `Catalogue::get($key, $number = null): ?string` |
+| Missing catalogue key returns `''` | Missing catalogue key returns `null` |
+| `Translator::getVariant()` | Removed; select through `Catalogue::get()` |
+| `Catalogue::locale()` and `build()` | Use the `locale` and `build` properties |
+| `setNormalizeCallback(callable)` | `setNormalizeCallback(Closure)`; convert with first-class callable syntax or `Closure::fromCallable()` |
 
 The core only requires PHP. NEON parsing and compiled PHP storage are separate Composer packages with a dependency on core 3.x. There is no compatibility shim for the old event/file API.
 
@@ -28,13 +33,15 @@ Every source has a stable ID and an opaque string version. Use a new ID or names
 
 Source loaders return `MessageCatalogue`. Entries are `string|PluralMessage`; raw arrays, numbers, booleans and nested maps are rejected. At an external boundary such as a database or NEON decoder, validate data and convert it into these objects.
 
-Runtime catalogue implementations expose `get(string $key, float|int|string|null $number = null): ?string`. They resolve plural variants and fallbacks internally; `PluralMessage` remains the source-input type. Numeric quantities are cast to integers only for plural entries; other values select `Other`. Missing keys return `null`, while missing plural forms return their fallback.
+Runtime catalogue implementations expose `get(string $key, float|int|string|null $number = null): ?string`. They resolve plural variants and fallbacks internally; `PluralMessage` remains the source-input type. Numeric quantities are cast to integers only for plural entries; other values select `Other`. Missing keys return `null`, while missing plural forms return their fallback. Fallback priority is now `other`, `many`, `few`, `two`, `one`, `zero`; 2.x used the last variant in the input array.
 
-Implement `missingPluralForm(string $key, float|int|string|null $number = null): ?Plural` as a separate, side-effect-free diagnostic lookup. It returns the selected category only when a plural message lacks that form; ordinary text, unknown keys and defined forms return `null`. Translator wraps the catalogue in `DiagnosticCatalogue` when given diagnostics, including after `replaceCatalogue()`. Direct callers that need reporting can use the same wrapper. The getter no longer accepts a diagnostics argument. Builder and PHP storage format keys change so older compiled classes are excluded before being included.
+Implement `missingPluralForm(string $key, float|int|string|null $number = null): ?Plural` as a separate, side-effect-free diagnostic lookup. It returns the selected category only when a plural message lacks that form; ordinary text, unknown keys and defined forms return `null`. Translator wraps the catalogue in `DiagnosticCatalogue` when given diagnostics, including after `replaceCatalogue()`. Direct callers that need reporting can use the same wrapper. Builder and PHP storage format keys change so older compiled classes are excluded before being included.
 
 Core translation parameters are `string|int|float`. The Nette adapter retains Nette's `mixed` parameter contract and normalizes scalar, null and `Stringable` values; arrays and other objects throw.
 
-The normalizer receives a string and must return a string. Invalid formatting throws `TranslatorException` with the original `ValueError` as its cause. Empty strings and `"0"` are no longer treated as missing translations.
+The normalizer receives a string and must return a string. `Translator::normalize()` is now static. Invalid formatting throws `TranslatorException` with the original `ValueError` as its cause. Empty strings and `"0"` are no longer treated as missing translations.
+
+Custom diagnostics implement `catalogueUsed(CatalogueStatus $status)` in addition to the message-reporting methods. The built-in diagnostics now return `StringList` snapshots from `getWarnings()` and `getUntranslated()`; enumerate catalogue status with `eachCatalogue(Closure $consumer)`.
 
 ## Cache lifecycle
 

@@ -11,7 +11,7 @@ This is the `nextgen` development branch for the breaking 3.0 release.
 | `bckp/translator-core` | Typed messages, source contracts, version checks, catalogue building and translation |
 | `bckp/translator-neon` | NEON source plugin, in its [own repository](https://github.com/bckp/translator-neon) |
 | `bckp/translator-php-cache` | Compiled PHP storage plugin, in [`packages/php-cache`](packages/php-cache) |
-| `bckp/translator-nette` | Nette DI, locale resolution, Latte and Tracy integration |
+| `bckp/translator-nette` | Nette DI, locale resolution, Latte and Tracy integration ([manual](https://github.com/bckp/translator-nette/blob/nextgen/README.md)) |
 
 The plugins are separate Composer packages. The PHP-cache plugin is developed in `packages/php-cache` and installed locally through Composer. The NEON plugin has its own repository, tests and quality checks; it is not required to develop or test the core.
 
@@ -24,6 +24,20 @@ composer benchmark
 ```
 
 PHPStan runs at level 8. Source code uses native types, strict types and attributes without docblocks. PHP CS Fixer uses the PER Coding Style 3.0 preset with tab indentation and PHP 8.4 migration rules. EditorConfig also selects tabs for PHP files.
+
+## Installation during development
+
+The 3.0 packages are not released yet. To run the standalone PHP-cache examples, check out this branch and install its development dependencies:
+
+```sh
+git clone --branch nextgen https://github.com/bckp/translator-core.git
+cd translator-core
+COMPOSER_ROOT_VERSION=3.0.x-dev composer install
+```
+
+This checkout installs the PHP-cache package through its local path repository. PHP 8.4+ and the tokenizer extension are required for that plugin. The core itself only requires PHP; `MemoryStorage` needs no cache plugin.
+
+For NEON files, also check out the [NEON plugin's matching branch](https://github.com/bckp/translator-neon/blob/nextgen/README.md). For Nette, follow the [adapter's installation and configuration](https://github.com/bckp/translator-nette/blob/nextgen/README.md). An application's Composer configuration must declare its own development/path repositories; Composer does not inherit repositories from dependencies.
 
 ## Quick start
 
@@ -38,6 +52,8 @@ use Bckp\Translator\PhpCache\PhpCatalogueStorage;
 use Bckp\Translator\PluralMessage;
 use Bckp\Translator\Sources\StaticSource;
 use Bckp\Translator\Translator;
+
+require __DIR__ . '/vendor/autoload.php';
 
 $messages = (new MessageCatalogue())
     ->add('messages.welcome', 'Vítejte')
@@ -57,18 +73,45 @@ $builder = (new CatalogueBuilder(
     ->addSource('application', new StaticSource($messages, 'release-42'))
     ->setCheckProbability(0.01);
 
-$translator = new Translator($builder->compile());
+$catalogue = $builder->compile();
+$translator = new Translator($catalogue);
 echo $translator->translate('messages.hello', 'Ada');
 echo $translator->translate('messages.people', 4);
 ```
 
-A `MessageCatalogue` only accepts a string or a `PluralMessage`. A plural message has named, nullable string variants and must contain at least one variant. Empty translations and the key/value `"0"` are valid. A missing key returns the original message; a missing plural variant falls back to another defined variant and can be reported through diagnostics.
+A `MessageCatalogue` only accepts a string or a `PluralMessage`. A plural message has named, nullable string variants and must contain at least one variant. Empty translations and the key/value `"0"` are valid. A missing key returns the original message; a missing plural variant falls back to the first defined variant in this order: `other`, `many`, `few`, `two`, `one`, `zero`. This order is independent of the input's order. Diagnostics can report a missing form even when a fallback is available.
 
-A runtime `Catalogue::get(string $key, float|int|string|null $number = null): ?string` returns the selected text, including its fallback, or `null` for an unknown key. Ordinary messages ignore the number. Only plural entries inspect the quantity: numeric values are converted to integers for the locale's rule, while omitted or nonnumeric values select `Other`. The translator forwards the first formatting parameter unchanged.
+## Direct catalogue access
+
+A runtime `Catalogue::get(string $key, float|int|string|null $number = null): ?string` returns the selected text, including its fallback, or `null` for an unknown key. Ordinary messages ignore the number. Only plural entries inspect the quantity: numeric values are converted to integers for the locale's rule, while omitted or nonnumeric values select `Other`. The translator forwards the first positional formatting parameter unchanged.
+
+```php
+$catalogue->get('messages.welcome', 4); // 'Vítejte'
+$catalogue->get('messages.people', 4); // '%d lidé'
+$catalogue->get('messages.people'); // '%d lidí'
+$catalogue->get('messages.missing'); // null
+$translator->translate('messages.people', 4); // '4 lidé'
+```
+
+`get()` selects the text without formatting it. `translate()` also substitutes formatting parameters. The source-input container is different: `MessageCatalogue::get()` returns `string|PluralMessage|null` before compilation.
 
 `Catalogue::missingPluralForm()` accepts the same key and quantity and returns the missing `Plural` category, or `null` for a defined form, ordinary text or unknown key. It does not report anything or mutate the catalogue. When diagnostics are enabled, the translator uses a `DiagnosticCatalogue` wrapper to report unknown keys and missing forms. The production translation path contains no diagnostics checks.
 
 Sources merge in registration order: the last source wins for an identical key. `StaticSource` snapshots its input. Storage also snapshots the definition, so later edits to source messages do not change a live catalogue.
+
+## Formatting and normalization
+
+`translate()` accepts a string or `Stringable` message and `string|int|float` formatting parameters. With no parameters, it returns the selected text unchanged, including any placeholders. With parameters, it applies the normalizer and then `vsprintf()`. Invalid formatting throws `TranslatorException` with the original `ValueError` as its cause.
+
+The default `Translator::normalize()` escapes Nette form tokens `%label`, `%value` and `%name` so that formatting leaves them intact. Supply a `Closure` to change normalization, for example to preserve another literal token:
+
+```php
+$translator->setNormalizeCallback(
+	static fn(string $text): string => Translator::normalize(str_replace('%product', '%%product', $text)),
+);
+```
+
+The normalizer must return a string. Use first-class callable syntax such as `normalizeTranslation(...)`, or `Closure::fromCallable()`, to convert another callable into a closure. Restore the default with `$translator->setNormalizeCallback(Translator::normalize(...))`.
 
 ## Callback sources and mandatory versions
 
@@ -79,8 +122,11 @@ Register sources before calling `compile()`:
 
 declare(strict_types=1);
 
+use Bckp\Translator\CatalogueBuilder;
 use Bckp\Translator\MessageCatalogue;
 use Bckp\Translator\Sources\CallbackSource;
+use Bckp\Translator\Storage\MemoryStorage;
+use Bckp\Translator\Translator;
 
 $revision = 'initial';
 $text = 'Hello';
@@ -94,10 +140,12 @@ $source = new CallbackSource(
     },
 );
 
+$builder = new CatalogueBuilder(new MemoryStorage(), 'en');
 $builder->addSource('database', $source);
+$translator = new Translator($builder->compile());
 ```
 
-Both callbacks receive the normalized locale. The loader must return `MessageCatalogue`; the version callback must return a string. Invalid callback results throw an exception.
+Both callbacks receive the normalized locale. The loader must return `MessageCatalogue`; the version callback must return a string. The `version` argument can also be a fixed string. Invalid callback results throw an exception.
 
 A version is an opaque string compared for equality, never ordered. Use a content hash, database revision, timestamp converted to string, deployment identifier, or a constant for immutable data. Empty strings and `"0"` are valid versions too. There is no unversioned source.
 
@@ -149,11 +197,19 @@ The stable storage key includes format version, namespace, normalized locale, pl
 
 IDs identify the logical sources. When changing a source's configuration while keeping the same ID, update its version, change the namespace, or force a rebuild. A request that skips verification deliberately uses the existing cache. Use separate namespaces when sharing storage between applications or tenants.
 
-Sources cannot be added or changed after a builder initializes its catalogue.
+Source registrations cannot be added or changed after a builder initializes its catalogue. Source data can change independently; its version must reflect the change or a rebuild must be forced.
 
 ## NEON files
 
 Install/use the NEON plugin and register it as an ordinary source:
+
+For the unreleased branch, run these commands from the core checkout before using the example:
+
+```sh
+git clone --branch nextgen https://github.com/bckp/translator-neon.git ../translator-neon
+composer config repositories.neon path ../translator-neon
+COMPOSER_ROOT_VERSION=3.0.x-dev composer require bckp/translator-neon:dev-nextgen
+```
 
 ```php
 use Bckp\Translator\Neon\NeonSource;
@@ -179,11 +235,29 @@ Register the source before calling `compile()`. The file prefix produces keys su
 
 `MemoryStorage` is an alternative without disk persistence. Implement `Interfaces\CatalogueStorage` to provide another backend; it receives a typed `CatalogueDefinition` and returns a `Catalogue`.
 
-Compiled PHP catalogues return ordinary texts directly from a generated `match` and keep plural strings in a constant map. They create no `PluralMessage` objects at runtime and inspect quantities only for plural entries. Translation does no source IO, random sampling or version checks. `composer benchmark-simple` measures plain, formatted and plural translations and asserts that source call counters do not change. See the [benchmark results](benchmarks/README.md) for the initial 2.x comparison.
+Compiled PHP catalogues return ordinary texts directly from a generated `match` and keep plural strings in `private const array Plurals`. They create no `PluralMessage` objects at runtime and inspect quantities only for plural entries. Translation does no source IO, random sampling or version checks. `composer benchmark-simple` measures plain, formatted and plural translations and asserts that source call counters do not change. See the [current v2 comparison and benchmark instructions](benchmarks/README.md) for PHP 8.4 and 8.5 results, including the generated catalogue's OPcache memory cost.
 
 The PHP cache plugin copies the selected plural rule's body from `PluralProvider` at compilation. The compiled catalogue then selects plurals directly, without calling the provider. Rebuilding captures any later change to that rule.
 
 An optional `Diagnostics` implementation receives missing messages, plural warnings and `CatalogueStatus` records containing the stored versions and whether initialization checked/recompiled the catalogue. Rendering diagnostics does not invoke sources.
+
+Pass the same diagnostics object to the builder for catalogue status and to the translator for translation reports:
+
+```php
+use Bckp\Translator\Diagnostics\Diagnostics;
+use Bckp\Translator\Storage\MemoryStorage;
+
+$diagnostics = new Diagnostics();
+$builder = new CatalogueBuilder(new MemoryStorage(), 'cs', diagnostics: $diagnostics);
+$builder->addSource('application', new StaticSource($messages, 'release-42'));
+$translator = new Translator($builder->compile(), $diagnostics);
+$translator->translate('messages.missing');
+$diagnostics->getUntranslated()->each(static function (string $key): void {
+	echo $key, "\n";
+});
+```
+
+The built-in `getWarnings()` and `getUntranslated()` return `StringList` snapshots. Use `eachCatalogue()` to read stored `CatalogueStatus` objects. Debug version checking and translation diagnostics are separate choices; `setDebugMode(true)` does not attach diagnostics by itself.
 
 The built-in plural provider retains Czech, English-style and invariant rules and selects by the base language of normalized locales such as `cs-cz`. Override `getRule()` to choose among these rules. A different rule implementation requires extending the catalogue/storage contract.
 
