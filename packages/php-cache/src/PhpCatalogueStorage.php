@@ -175,8 +175,9 @@ final readonly class PhpCatalogueStorage implements CatalogueStorage
 					private function resolvePlural(string $key, float|int|string|null $number): string
 					{
 						$message = self::Plurals[$key];
-						$plural = is_numeric($number) ? $this->plural((int) $number) : \Bckp\Translator\Plural::Other;
-						return $message[$plural->value] ?? $message['fallback'];
+						return $message[
+							(is_numeric($number) ? $this->plural((int) $number) : Plural::Other)->value
+						] ?? $message['fallback'];
 					}
 				}
 			}
