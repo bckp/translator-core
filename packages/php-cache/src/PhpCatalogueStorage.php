@@ -83,7 +83,7 @@ final readonly class PhpCatalogueStorage implements CatalogueStorage
 
 	private function filename(string $key): string
 	{
-		return $this->path . '/' . hash('sha256', '5:' . $key) . '.php';
+		return $this->path . '/' . hash('sha256', '6:' . $key) . '.php';
 	}
 
 	private function compile(CatalogueDefinition $definition): string
@@ -114,17 +114,15 @@ final readonly class PhpCatalogueStorage implements CatalogueStorage
 			$versions .= "\t\t\t\t" . 'new \Bckp\Translator\SourceVersion(' . var_export($version->id, true)
 				. ', ' . var_export($version->version, true) . "),\n";
 		});
-		$pluralMethod = match ($definition->pluralRule) {
-			PluralRule::Czech => 'csPlural',
-			PluralRule::English => 'enPlural',
-			PluralRule::Invariant => 'zeroPlural',
-		};
+		$pluralBody = PluralMethodBody::extract($definition->pluralRule);
 		$template = <<<'PHP'
 			<?php
 
 			declare(strict_types=1);
 
 			namespace Bckp\Translator\Compiled;
+
+			use Bckp\Translator\Plural;
 
 			if (!class_exists(Generated__HASH__::class, false)) {
 				final class Generated__HASH__ extends \Bckp\Translator\Catalogue
@@ -171,7 +169,7 @@ final readonly class PhpCatalogueStorage implements CatalogueStorage
 					#[\Override]
 					public function plural(int $number): \Bckp\Translator\Plural
 					{
-						return \Bckp\Translator\PluralProvider::__PLURAL_METHOD__($number);
+			__PLURAL_BODY__
 					}
 
 					private function resolvePlural(string $key, float|int|string|null $number): string
@@ -191,7 +189,7 @@ final readonly class PhpCatalogueStorage implements CatalogueStorage
 			'__LOCALE__' => var_export($definition->locale, true),
 			'__BUILD__' => (string) $definition->build,
 			'__VERSIONS__' => rtrim($versions, "\n"),
-			'__PLURAL_METHOD__' => $pluralMethod,
+			'__PLURAL_BODY__' => "\t" . str_replace("\n", "\n\t", $pluralBody),
 		];
 		$values['__HASH__'] = hash('sha256', strtr($template, $values));
 

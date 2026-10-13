@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Bckp\Translator\Benchmarks;
 
 use Bckp\Translator\CatalogueBuilder;
+use Bckp\Translator\Catalogue;
 use Bckp\Translator\MessageCatalogue;
 use Bckp\Translator\PhpCache\PhpCatalogueStorage;
 use Bckp\Translator\PluralMessage;
@@ -25,6 +26,8 @@ use RuntimeException;
 final class TranslationBench
 {
 	private Translator $translator;
+
+	private Catalogue $catalogue;
 
 	private int $loads = 0;
 
@@ -56,6 +59,7 @@ final class TranslationBench
 			throw new RuntimeException('The compiled catalogue must be cached by OPcache before measurement.');
 		}
 		$this->translator = new Translator($catalogue);
+		$this->catalogue = $catalogue;
 		$this->loads = 0;
 		$this->versions = 0;
 	}
@@ -83,6 +87,16 @@ final class TranslationBench
 	public function benchPlural(): void
 	{
 		$this->translator->translate('messages.people', 3);
+	}
+
+	public function benchPluralRule(): void
+	{
+		$this->catalogue->plural(3);
+	}
+
+	public function benchPluralLookup(): void
+	{
+		$this->catalogue->get('messages.people', 3);
 	}
 
 	public function checkSourceCalls(): void

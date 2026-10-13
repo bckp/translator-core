@@ -1,6 +1,6 @@
 # Compiled PHP catalogue storage
 
-`bckp/translator-php-cache` implements core 3.x `CatalogueStorage` for PHP 8.4+.
+`bckp/translator-php-cache` implements core 3.x `CatalogueStorage` for PHP 8.4+ with the tokenizer extension.
 
 This package lives in the core repository's `packages/php-cache` directory during `nextgen` development.
 
@@ -28,3 +28,7 @@ The compiled class returns ordinary texts directly from a generated `match` and 
 Use a directory dedicated to generated cache files and writable by PHP. Like any executable PHP cache, it must not be writable by untrusted users. No source data is loaded while using a warm cache whose verification was skipped.
 
 Use core's `MemoryStorage` for an in-process backend without filesystem persistence.
+
+At compilation, the plugin uses reflection and PHP tokens to copy the selected rule's method body from `PluralProvider` into the generated `plural()` method. `PluralProvider` remains the rule's single definition. The source file is read only when compiling; cached plural selection makes no provider call and performs no source IO. Changing the provider after compilation requires a rebuild to update the embedded rule.
+
+Format 6 excludes earlier caches so the embedded rule is used after upgrading. The source body participates in the generated class hash, allowing multiple compiled revisions to coexist in one process.

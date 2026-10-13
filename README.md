@@ -181,6 +181,8 @@ Register the source before calling `compile()`. The file prefix produces keys su
 
 Compiled PHP catalogues return ordinary texts directly from a generated `match` and keep plural strings in a constant map. They create no `PluralMessage` objects at runtime and inspect quantities only for plural entries. Translation does no source IO, random sampling or version checks. `composer benchmark-simple` measures plain, formatted and plural translations and asserts that source call counters do not change. See the [benchmark results](benchmarks/README.md) for the initial 2.x comparison.
 
+The PHP cache plugin copies the selected plural rule's body from `PluralProvider` at compilation. The compiled catalogue then selects plurals directly, without calling the provider. Rebuilding captures any later change to that rule.
+
 An optional `Diagnostics` implementation receives missing messages, plural warnings and `CatalogueStatus` records containing the stored versions and whether initialization checked/recompiled the catalogue. Rendering diagnostics does not invoke sources.
 
 The built-in plural provider retains Czech, English-style and invariant rules and selects by the base language of normalized locales such as `cs-cz`. Override `getRule()` to choose among these rules. A different rule implementation requires extending the catalogue/storage contract.

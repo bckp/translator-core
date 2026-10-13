@@ -4,6 +4,7 @@
     "license": "BSD-3-Clause",
     "require": {
         "php": "^8.4",
+        "ext-tokenizer": "*",
         "bckp/translator-core": "^3.0"
     },
     "autoload": {
