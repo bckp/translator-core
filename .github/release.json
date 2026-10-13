@@ -1,0 +1,5 @@
+{
+    "tag": "v3.0.0",
+    "name": "Translator Core 3.0.0",
+    "checks": ["Tests", "API compatibility", "Benchmarks"]
+}

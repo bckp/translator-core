@@ -1,0 +1,124 @@
+name: Release
+
+on:
+  workflow_run:
+    workflows: [Tests]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish requested release after checks
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('node:fs');
+            const {execFileSync} = require('node:child_process');
+            const {owner, repo} = context.repo;
+            const sha = context.payload.workflow_run.head_sha;
+            const requestPath = '.github/release.json';
+
+            if (!fs.existsSync(requestPath)) {
+              core.info('No release requested.');
+              return;
+            }
+
+            const changed = execFileSync('git', ['diff-tree', '--no-commit-id', '--name-only', '-r', sha], {encoding: 'utf8'}).split('\n');
+            if (!changed.includes(requestPath)) {
+              core.info('This commit does not request a release.');
+              return;
+            }
+
+            const request = JSON.parse(fs.readFileSync(requestPath, 'utf8'));
+            if (!/^v[0-9]+\.[0-9]+\.[0-9]+$/.test(request.tag) || typeof request.name !== 'string'
+              || !Array.isArray(request.checks) || request.checks.length === 0
+              || !request.checks.every(name => typeof name === 'string')) {
+              throw new Error('Invalid release request.');
+            }
+
+            const isCurrentMain = async () => {
+              const result = await github.rest.git.getRef({owner, repo, ref: 'heads/main'});
+              return result.data.object.sha === sha;
+            };
+            if (!(await isCurrentMain())) {
+              core.info('A newer main revision superseded this release request.');
+              return;
+            }
+
+            let ready = false;
+            for (let attempt = 0; attempt < 120; ++attempt) {
+              const result = await github.rest.actions.listWorkflowRunsForRepo({owner, repo, branch: 'main', event: 'push', head_sha: sha, per_page: 100});
+              const runs = result.data.workflow_runs;
+              const selected = request.checks.map(name => runs.find(run => run.name === name && run.head_sha === sha));
+              const failed = selected.find(run => run?.status === 'completed' && run.conclusion !== 'success');
+              if (failed) {
+                throw new Error(`Required workflow failed: ${failed.name} (${failed.conclusion}).`);
+              }
+              if (selected.every(run => run?.status === 'completed' && run.conclusion === 'success')) {
+                ready = true;
+                break;
+              }
+              await new Promise(resolve => setTimeout(resolve, 5000));
+            }
+            if (!ready) {
+              throw new Error('Required workflows did not finish successfully within ten minutes.');
+            }
+            if (!(await isCurrentMain())) {
+              core.info('Main moved while checking the release request.');
+              return;
+            }
+
+            const body = fs.readFileSync(`docs/releases/${request.tag}.md`, 'utf8');
+            let tag;
+            try {
+              tag = await github.rest.git.getRef({owner, repo, ref: `tags/${request.tag}`});
+            } catch (error) {
+              if (error.status !== 404) throw error;
+            }
+            if (tag) {
+              let target = tag.data.object;
+              while (target.type === 'tag') {
+                target = (await github.rest.git.getTag({owner, repo, tag_sha: target.sha})).data.object;
+              }
+              if (target.type !== 'commit' || target.sha !== sha) {
+                throw new Error('The release tag already points to another commit.');
+              }
+            } else {
+              await github.rest.git.createRef({owner, repo, ref: `refs/tags/${request.tag}`, sha});
+            }
+
+            let existing;
+            try {
+              existing = await github.rest.repos.getReleaseByTag({owner, repo, tag: request.tag});
+            } catch (error) {
+              if (error.status !== 404) throw error;
+            }
+            if (existing) {
+              if (existing.data.draft || existing.data.prerelease) {
+                throw new Error('An existing release is not a published stable release.');
+              }
+              core.info(`Release already published: ${existing.data.html_url}`);
+              return;
+            }
+
+            const release = await github.rest.repos.createRelease({owner, repo, tag_name: request.tag,
+              target_commitish: sha, name: request.name, body, draft: false, prerelease: false, make_latest: 'true'});
+            core.info(`Published ${release.data.html_url}`);

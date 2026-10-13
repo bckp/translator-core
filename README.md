@@ -2,7 +2,7 @@
 
 A small PHP 8.4+ translator with versioned sources and a compiled hot path. The translator and catalogue builder use typed source and storage interfaces without accessing files directly. Compiled PHP storage is included; NEON parsing and Nette integration are optional packages.
 
-This is the `nextgen` development branch for the breaking 3.0 release.
+Version 3.0 is a breaking redesign. See [MIGRATION.md](MIGRATION.md) when upgrading from 2.x.
 
 ## Packages
 
@@ -10,7 +10,7 @@ This is the `nextgen` development branch for the breaking 3.0 release.
 | --- | --- |
 | `bckp/translator-core` | Typed messages, source contracts, version checks, catalogue building, translation and compiled PHP storage |
 | `bckp/translator-neon` | NEON source plugin, in its [own repository](https://github.com/bckp/translator-neon) |
-| `bckp/translator-nette` | Nette DI, locale resolution, Latte and Tracy integration ([manual](https://github.com/bckp/translator-nette/blob/nextgen/README.md)) |
+| `bckp/translator-nette` | Nette DI, locale resolution, Latte and Tracy integration ([manual](https://github.com/bckp/translator-nette/blob/main/README.md)) |
 
 PHP storage is part of `bckp/translator-core` in [`src/PhpCache`](src/PhpCache), with its [storage manual](docs/php-cache.md). It needs no separate package or repository. The NEON plugin and Nette adapter have their own Composer packages and repositories; neither is required to develop or test the core.
 
@@ -24,19 +24,17 @@ composer benchmark
 
 PHPStan runs at level 8. Source code uses native types, strict types and attributes without docblocks. PHP CS Fixer uses the PER Coding Style 3.0 preset with tab indentation and PHP 8.4 migration rules. EditorConfig also selects tabs for PHP files.
 
-## Installation during development
-
-The 3.0 packages are not released yet. To run the examples, check out this branch and install its development dependencies:
+## Installation
 
 ```sh
-git clone --branch nextgen https://github.com/bckp/translator-core.git
-cd translator-core
-COMPOSER_ROOT_VERSION=3.0.x-dev composer install
+composer require bckp/translator-core:^3.0
 ```
 
-The core requires PHP 8.4+ and the tokenizer extension, used when compiling a plural rule. It has no third-party runtime dependencies. Both `PhpCatalogueStorage` and `MemoryStorage` are included and autoloaded from this package.
+PHP 8.4+ and the tokenizer extension are required. The core has no third-party runtime dependencies. Both `PhpCatalogueStorage` and `MemoryStorage` are included and autoloaded from this package.
 
-For NEON files, also check out the [NEON plugin's matching branch](https://github.com/bckp/translator-neon/blob/nextgen/README.md). For Nette, follow the [adapter's installation and configuration](https://github.com/bckp/translator-nette/blob/nextgen/README.md). An application's Composer configuration must declare its own development/path repositories; Composer does not inherit repositories from dependencies.
+For NEON files, install the [NEON source](https://github.com/bckp/translator-neon/blob/main/README.md). For Nette, follow the [adapter's installation and configuration](https://github.com/bckp/translator-nette/blob/main/README.md).
+
+For development, clone the core and run `COMPOSER_ROOT_VERSION=3.0.x-dev composer install`. The Nette and NEON development setups use sibling checkouts; an application's Composer configuration must declare its own development/path repositories because Composer does not inherit repositories from dependencies.
 
 ## Quick start
 
@@ -202,12 +200,8 @@ Source registrations cannot be added or changed after a builder initializes its 
 
 Install/use the NEON plugin and register it as an ordinary source:
 
-For the unreleased branch, run these commands from the core checkout before using the example:
-
 ```sh
-git clone --branch nextgen https://github.com/bckp/translator-neon.git ../translator-neon
-composer config repositories.neon path ../translator-neon
-COMPOSER_ROOT_VERSION=3.0.x-dev composer require bckp/translator-neon:dev-nextgen
+composer require bckp/translator-neon:^1.0
 ```
 
 ```php
@@ -228,7 +222,7 @@ people:
     other: '%d lidí'
 ```
 
-Register the source before calling `compile()`. The file prefix produces keys such as `messages.welcome`. The plugin computes a content version automatically, including added and removed files. A configured constant version can avoid hashing for immutable release assets. See the [plugin documentation](https://github.com/bckp/translator-neon/tree/nextgen).
+Register the source before calling `compile()`. The file prefix produces keys such as `messages.welcome`. The plugin computes a content version automatically, including added and removed files. A configured constant version can avoid hashing for immutable release assets. See the [plugin documentation](https://github.com/bckp/translator-neon/tree/main).
 
 ## Storage and diagnostics
 
@@ -292,3 +286,7 @@ Infection is deferred because it does not directly support Nette Tester. Adoptio
 ### Performance
 
 `composer benchmark` runs PHPBench with attributes, warmed compiled PHP catalogues, OPcache enabled and JIT/Xdebug disabled. It verifies that translations never call a source loader or version callback. See [benchmark instructions](benchmarks/README.md) for storing and comparing results. CI uploads results separately for PHP 8.4 and 8.5; timing differences are informational.
+
+## Publishing a release
+
+A release request is committed in `.github/release.json`, with the notes in `docs/releases/<tag>.md`. After that commit reaches `main`, the Release workflow waits for the successful Tests workflow and all named checks on the same commit before creating an immutable tag and a stable GitHub release. Updating code without changing the request does not publish another release. Existing tags are never moved.
