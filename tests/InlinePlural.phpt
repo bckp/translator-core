@@ -64,7 +64,7 @@ file_put_contents($script, strtr($program, [
 	'__PROVIDER__' => var_export(__DIR__ . '/UnavailablePluralProvider.php', true),
 	'__CASES__' => var_export($cases, true),
 ]));
-$command = PHP_SAPI === 'phpdbg' ? [PHP_BINARY, '-qrr', $script] : [PHP_BINARY, $script];
+$command = function_exists('phpdbg_start_oplog') ? [PHP_BINARY, '-qrr', $script] : [PHP_BINARY, $script];
 $process = proc_open($command, [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
 Assert::notSame(false, $process);
 $output = stream_get_contents($pipes[1]);
