@@ -43,7 +43,11 @@ Assert::same('missing', $translator->translate('missing'));
 $translator->translate('missing');
 Assert::same(1, $diagnostics->getUntranslated()->count());
 Assert::exception(static fn() => $translator->translate('bad', 'only one'), TranslatorException::class);
-$translator->setNormalizeCallback(static fn(string $value): int => 1);
+Assert::error(
+	static fn() => $translator->setNormalizeCallback(static fn(string $value): int => 1),
+	E_USER_DEPRECATED,
+	'%a%setNormalizeCallback()%a%CatalogueBuilder::setNormalizer()%a%',
+);
 Assert::exception(static fn() => $translator->translate('format', 'Ada'), UnexpectedValueException::class);
 $replacement = new CatalogueBuilder($storage, 'cs', namespace: 'replacement')
 	->addSource('app', new StaticSource(new MessageCatalogue()->add('hello', 'Updated'), 'v1'))->compile();

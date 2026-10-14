@@ -41,6 +41,8 @@ Core translation parameters are `string|int|float`. The Nette adapter retains Ne
 
 The normalizer receives a string and must return a string. `Translator::normalize()` is now static. Invalid formatting throws `TranslatorException` with the original `ValueError` as its cause. Empty strings and `"0"` are no longer treated as missing translations.
 
+Runtime normalization through `Translator::setNormalizeCallback()` is deprecated with PHP's native `#[Deprecated]` attribute. Register custom compilation normalization with `$builder->setNormalizer($callback, 'normalizer-v1')` before compiling. The nonempty identifier separates cached results; change it when changing the callback or explicitly rebuild with `forceRecompile()`. The callback runs only during compilation, including for plural variants. A third-party storage must support `FormattedCatalogue` and the normalized messages in `CatalogueDefinition`; existing catalogue implementations still work with the default runtime fallback.
+
 Custom diagnostics implement `catalogueUsed(CatalogueStatus $status)` in addition to the message-reporting methods. The built-in diagnostics now return `StringList` snapshots from `getWarnings()` and `getUntranslated()`; enumerate catalogue status with `eachCatalogue(Closure $consumer)`.
 
 ## Cache lifecycle

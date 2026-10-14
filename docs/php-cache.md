@@ -27,7 +27,7 @@ The compiled class returns ordinary texts directly from a generated `match` and 
 
 Generated `match` methods use more OPcache memory than the 2.x static-array catalogue. See the [core benchmark comparison](../benchmarks/README.md) for measured translation times and generated-script memory use.
 
-The compiled class implements the optional `FormattedCatalogue` interface. Its `format()` method reads `private const array Formats`, which stores only ordinary texts or plural entries changed by the default normalizer. Other entries delegate to `get()`. Raw text, plural rules and diagnostic lookups remain unchanged. A custom translator callback receives the original text and runs at runtime instead of using `Formats`.
+The compiled class implements the optional `FormattedCatalogue` interface. Its `format()` method reads `private const array Formats`, which stores only ordinary texts or plural entries changed by the compilation normalizer. Other entries delegate to `get()`. Raw text, plural rules and diagnostic lookups remain unchanged. Register custom compilation callbacks with `CatalogueBuilder::setNormalizer(Closure, string $id)`; their mandatory identifier separates cached results. A warm cache and translations never call the compilation normalizer. The deprecated runtime translator setter still receives original texts for compatibility.
 
 Use a directory dedicated to generated cache files and writable by PHP. Like any executable PHP cache, it must not be writable by untrusted users. No source data is loaded while using a warm cache whose verification was skipped.
 

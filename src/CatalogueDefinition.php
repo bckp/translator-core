@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Bckp\Translator;
 
+use Closure;
+use UnexpectedValueException;
+
 final readonly class CatalogueDefinition
 {
 	public MessageCatalogue $messages;
@@ -14,6 +17,7 @@ final readonly class CatalogueDefinition
 		public SourceVersions $versions,
 		MessageCatalogue $messages,
 		public PluralRule $pluralRule,
+		private ?Closure $normalizer = null,
 	) {
 		$this->messages = clone $messages;
 	}
@@ -21,9 +25,10 @@ final readonly class CatalogueDefinition
 	public function normalizedMessages(): MessageCatalogue
 	{
 		$formats = new MessageCatalogue();
-		$this->messages->each(static function (string $key, string|PluralMessage $message) use ($formats): void {
+		$normalizer = $this->normalizer ?? Translator::normalize(...);
+		$this->messages->each(static function (string $key, string|PluralMessage $message) use ($formats, $normalizer): void {
 			if (is_string($message)) {
-				$normalized = Translator::normalize($message);
+				$normalized = self::normalize($normalizer, $message);
 
 				if ($normalized !== $message) {
 					$formats->add($key, $normalized);
@@ -32,12 +37,12 @@ final readonly class CatalogueDefinition
 				return;
 			}
 			$normalized = new PluralMessage(
-				zero: $message->zero === null ? null : Translator::normalize($message->zero),
-				one: $message->one === null ? null : Translator::normalize($message->one),
-				two: $message->two === null ? null : Translator::normalize($message->two),
-				few: $message->few === null ? null : Translator::normalize($message->few),
-				many: $message->many === null ? null : Translator::normalize($message->many),
-				other: $message->other === null ? null : Translator::normalize($message->other),
+				zero: $message->zero === null ? null : self::normalize($normalizer, $message->zero),
+				one: $message->one === null ? null : self::normalize($normalizer, $message->one),
+				two: $message->two === null ? null : self::normalize($normalizer, $message->two),
+				few: $message->few === null ? null : self::normalize($normalizer, $message->few),
+				many: $message->many === null ? null : self::normalize($normalizer, $message->many),
+				other: $message->other === null ? null : self::normalize($normalizer, $message->other),
 			);
 
 			if ($normalized != $message) {
@@ -46,5 +51,16 @@ final readonly class CatalogueDefinition
 		});
 
 		return $formats;
+	}
+
+	private static function normalize(Closure $normalizer, string $text): string
+	{
+		$normalized = $normalizer($text);
+
+		if (!is_string($normalized)) {
+			throw new UnexpectedValueException('The normalize callback must return a string.');
+		}
+
+		return $normalized;
 	}
 }

@@ -14,6 +14,7 @@ interface Translator
 
 	public function translate(string|Stringable $message, float|int|string ...$parameters): string;
 
+	#[\Deprecated(message: 'Use CatalogueBuilder::setNormalizer() to normalize messages during compilation.')]
 	public function setNormalizeCallback(Closure $callback): void;
 
 	public function replaceCatalogue(Catalogue $catalogue): void;

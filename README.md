@@ -105,12 +105,15 @@ Sources merge in registration order: the last source wins for an identical key. 
 The default `Translator::normalize()` escapes Nette form tokens `%label`, `%value` and `%name` so that formatting leaves them intact. The built-in storages apply it during compilation and retain only texts it changes. Supply a `Closure` to change normalization, for example to preserve another literal token:
 
 ```php
-$translator->setNormalizeCallback(
+$builder->setNormalizer(
 	static fn(string $text): string => Translator::normalize(str_replace('%product', '%%product', $text)),
+	'product-token-v1',
 );
 ```
 
-The normalizer must return a string. Custom callbacks run on every formatted translation over the original selected text, preserving stateful callbacks. They are not called for unknown keys or translations without parameters and remain active after `replaceCatalogue()`. Use first-class callable syntax such as `normalizeTranslation(...)`, or `Closure::fromCallable()`, to convert another callable into a closure. Restore the default behavior with `$translator->setNormalizeCallback(Translator::normalize(...))`; an explicitly assigned callback still runs at runtime.
+Register the normalizer before `compile()`. It must return a string and runs once for each source text and defined plural variant during compilation. A warm cache and translations do not call it. The required nonempty identifier participates in the cache key; change it when the callback's behavior changes, or use `forceRecompile()` to rebuild explicitly. Callbacks should produce stable output for the identifier. Use first-class callable syntax such as `normalizeTranslation(...)`, or `Closure::fromCallable()`, to convert another callable into a closure. The built-in storages support custom compilation normalizers; a custom storage must return a catalogue implementing `FormattedCatalogue` and compile `CatalogueDefinition::normalizedMessages()`.
+
+`Translator::setNormalizeCallback()` is marked with PHP's native `#[Deprecated]` attribute on both the implementation and interface. Calling it emits `E_USER_DEPRECATED` and recommends `CatalogueBuilder::setNormalizer()`. Legacy runtime callbacks still receive the original selected text on each formatted translation, preserving stateful callbacks and catalogue replacement; they are not called for unknown keys or translations without parameters.
 
 ## Callback sources and mandatory versions
 

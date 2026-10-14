@@ -6,7 +6,9 @@ namespace Bckp\Translator;
 
 use Bckp\Translator\Interfaces\CatalogueStorage;
 use Bckp\Translator\Interfaces\Diagnostics;
+use Bckp\Translator\Interfaces\FormattedCatalogue;
 use Bckp\Translator\Interfaces\TranslationSource;
+use Closure;
 use InvalidArgumentException;
 use LogicException;
 use stdClass;
@@ -20,6 +22,10 @@ final class CatalogueBuilder
 	private bool $debugMode = false;
 
 	private float $checkProbability = 0.01;
+
+	private ?Closure $normalizer = null;
+
+	private ?string $normalizerId = null;
 
 	private readonly string $locale;
 
@@ -37,6 +43,21 @@ final class CatalogueBuilder
 	public function getLocale(): string
 	{
 		return $this->locale;
+	}
+
+	public function setNormalizer(Closure $normalizer, string $id): self
+	{
+		if ($this->catalogue !== null) {
+			throw new LogicException('The normalizer cannot be changed after the catalogue is initialized.');
+		}
+
+		if ($id === '') {
+			throw new InvalidArgumentException('A normalizer identifier cannot be empty.');
+		}
+		$this->normalizer = $normalizer;
+		$this->normalizerId = $id;
+
+		return $this;
 	}
 
 	public function addSource(string $id, TranslationSource $source): self
@@ -121,13 +142,19 @@ final class CatalogueBuilder
 
 	private function cacheKey(PluralRule $rule): string
 	{
-		return hash('sha256', serialize([
+		$configuration = [
 			'format' => 7,
 			'namespace' => $this->namespace,
 			'locale' => $this->locale,
 			'rule' => $rule->value,
 			'sources' => array_keys(get_object_vars($this->sources)),
-		]));
+		];
+
+		if ($this->normalizerId !== null) {
+			$configuration['normalizer'] = $this->normalizerId;
+		}
+
+		return hash('sha256', serialize($configuration));
 	}
 
 	private function versions(): SourceVersions
@@ -151,6 +178,7 @@ final class CatalogueBuilder
 			versions: $versions,
 			messages: $this->messages(),
 			pluralRule: $rule,
+			normalizer: $this->normalizer,
 		);
 		$catalogue = $this->storage->save($key, $definition);
 
@@ -176,6 +204,9 @@ final class CatalogueBuilder
 
 	private function useCatalogue(Catalogue $catalogue, bool $checked, bool $recompiled): Catalogue
 	{
+		if ($this->normalizer !== null && !$catalogue instanceof FormattedCatalogue) {
+			throw new LogicException('Storage must return a FormattedCatalogue to support compile-time normalization.');
+		}
 		$this->catalogue = $catalogue;
 		$this->diagnostics?->catalogueUsed(new CatalogueStatus($catalogue, $checked, $recompiled));
 

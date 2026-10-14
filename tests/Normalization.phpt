@@ -7,6 +7,7 @@ require __DIR__ . '/bootstrap.php';
 use Bckp\Translator\Catalogue;
 use Bckp\Translator\CatalogueBuilder;
 use Bckp\Translator\Diagnostics\Diagnostics;
+use Bckp\Translator\Interfaces\CatalogueStorage;
 use Bckp\Translator\Interfaces\FormattedCatalogue;
 use Bckp\Translator\MessageCatalogue;
 use Bckp\Translator\PhpCache\PhpCatalogueStorage;
@@ -63,11 +64,12 @@ foreach ([new MemoryStorage(), new PhpCatalogueStorage(TEMP_DIR . '/normalizatio
 			Assert::same(1, $diagnostics->getUntranslated()->count());
 		}
 		$calls = 0;
-		$translator->setNormalizeCallback(static function (string $text) use (&$calls): string {
+		$callback = static function (string $text) use (&$calls): string {
 			++$calls;
 
 			return $calls . ': ' . Translator::normalize($text);
-		});
+		};
+		Assert::error(static fn() => $translator->setNormalizeCallback($callback), E_USER_DEPRECATED);
 		Assert::same('%label %value %name: %s', $translator->translate('tokens'));
 		Assert::same('missing', $translator->translate('missing', 'Ada'));
 		Assert::same(0, $calls);
@@ -79,9 +81,9 @@ foreach ([new MemoryStorage(), new PhpCatalogueStorage(TEMP_DIR . '/normalizatio
 			->addSource('app', new StaticSource(new MessageCatalogue()->add('tokens', '%value: %s'), 'v2'))->compile();
 		$translator->replaceCatalogue($replacement);
 		Assert::same('3: %value: Ada', $translator->translate('tokens', 'Ada'));
-		$translator->setNormalizeCallback(Translator::normalize(...));
+		Assert::error(static fn() => $translator->setNormalizeCallback(Translator::normalize(...)), E_USER_DEPRECATED);
 		Assert::same('%value: Ada', $translator->translate('tokens', 'Ada'));
-		$translator->setNormalizeCallback(static fn(string $text): int => 1);
+		Assert::error(static fn() => $translator->setNormalizeCallback(static fn(string $text): int => 1), E_USER_DEPRECATED);
 		Assert::exception(static fn() => $translator->translate('tokens', 'Ada'), UnexpectedValueException::class);
 	}
 
@@ -120,8 +122,36 @@ foreach ([new MemoryStorage(), new PhpCatalogueStorage(TEMP_DIR . '/normalizatio
 		Assert::same('%label %value %name: Ada', $translator->translate('tokens', 'Ada'));
 		Assert::same('%value: 3 people', $translator->translate('plural', 3));
 		Assert::same('missing', $translator->translate('missing', 3));
-		$translator->setNormalizeCallback(static fn(string $text): string => 'Custom ' . Translator::normalize($text));
+		Assert::error(
+			static fn() => $translator->setNormalizeCallback(static fn(string $text): string => 'Custom ' . Translator::normalize($text)),
+			E_USER_DEPRECATED,
+		);
 		Assert::same('Custom %label: 3 option', $translator->translate('fallback', 3));
+	}
+
+	foreach ([false, true] as $cached) {
+		$legacyStorage = new class ($legacy, $cached) implements CatalogueStorage {
+			public function __construct(private readonly Catalogue $catalogue, private readonly bool $cached) {}
+
+			#[\Override]
+			public function load(string $key): ?Catalogue
+			{
+				return $this->cached ? $this->catalogue : null;
+			}
+
+			#[\Override]
+			public function save(string $key, Bckp\Translator\CatalogueDefinition $definition): Catalogue
+			{
+				return $this->catalogue;
+			}
+		};
+		Assert::exception(
+			static fn() => new CatalogueBuilder($legacyStorage, 'cs')->setCheckProbability(0)
+				->addSource('app', new StaticSource($messages, 'v1'))
+				->setNormalizer(Translator::normalize(...), 'custom')->compile(),
+			LogicException::class,
+			'Storage must return a FormattedCatalogue to support compile-time normalization.',
+		);
 	}
 }
 

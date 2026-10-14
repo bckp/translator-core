@@ -47,6 +47,7 @@ final class Translator implements Interfaces\Translator
 	}
 
 	#[\Override]
+	#[\Deprecated(message: 'Use CatalogueBuilder::setNormalizer() to normalize messages during compilation.')]
 	public function setNormalizeCallback(Closure $callback): void
 	{
 		$this->normalizeCallback = $callback;
