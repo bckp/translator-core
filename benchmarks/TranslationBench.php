@@ -79,6 +79,11 @@ final class TranslationBench
 		$this->translator->translate('messages.count', 3);
 	}
 
+	public function benchNormalized(): void
+	{
+		$this->translator->translate('messages.field', 'Ada');
+	}
+
 	public function benchMissing(): void
 	{
 		$this->translator->translate('messages.missing');
@@ -121,6 +126,7 @@ final class TranslationBench
 			->add('messages.hello', 'Hello')
 			->add('messages.format', 'Hello %s')
 			->add('messages.count', '%d items')
+			->add('messages.field', '%label: %s')
 			->add('messages.people', new PluralMessage(
 				zero: 'nobody',
 				one: '%d person',

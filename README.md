@@ -92,15 +92,17 @@ $translator->translate('messages.people', 4); // '4 lidé'
 
 `get()` selects the text without formatting it. `translate()` also substitutes formatting parameters. The source-input container is different: `MessageCatalogue::get()` returns `string|PluralMessage|null` before compilation.
 
+The built-in storages also implement the optional `Interfaces\FormattedCatalogue`. Its `format()` method selects the text with the default normalizer already applied, ready for `vsprintf()`. Existing `Catalogue` implementations require no changes; the translator normalizes their texts at runtime.
+
 `Catalogue::missingPluralForm()` accepts the same key and quantity and returns the missing `Plural` category, or `null` for a defined form, ordinary text or unknown key. It does not report anything or mutate the catalogue. When diagnostics are enabled, the translator uses a `DiagnosticCatalogue` wrapper to report unknown keys and missing forms. The production translation path contains no diagnostics checks.
 
 Sources merge in registration order: the last source wins for an identical key. `StaticSource` snapshots its input. Storage also snapshots the definition, so later edits to source messages do not change a live catalogue.
 
 ## Formatting and normalization
 
-`translate()` accepts a string or `Stringable` message and `string|int|float` formatting parameters. With no parameters, it returns the selected text unchanged, including any placeholders. With parameters, it applies the normalizer and then `vsprintf()`. Invalid formatting throws `TranslatorException` with the original `ValueError` as its cause.
+`translate()` accepts a string or `Stringable` message and `string|int|float` formatting parameters. With no parameters, it returns the selected text unchanged, including any placeholders. With parameters, it reads the normalized text and applies `vsprintf()`. Invalid formatting throws `TranslatorException` with the original `ValueError` as its cause.
 
-The default `Translator::normalize()` escapes Nette form tokens `%label`, `%value` and `%name` so that formatting leaves them intact. Supply a `Closure` to change normalization, for example to preserve another literal token:
+The default `Translator::normalize()` escapes Nette form tokens `%label`, `%value` and `%name` so that formatting leaves them intact. The built-in storages apply it during compilation and retain only texts it changes. Supply a `Closure` to change normalization, for example to preserve another literal token:
 
 ```php
 $translator->setNormalizeCallback(
@@ -108,7 +110,7 @@ $translator->setNormalizeCallback(
 );
 ```
 
-The normalizer must return a string. Use first-class callable syntax such as `normalizeTranslation(...)`, or `Closure::fromCallable()`, to convert another callable into a closure. Restore the default with `$translator->setNormalizeCallback(Translator::normalize(...))`.
+The normalizer must return a string. Custom callbacks run on every formatted translation over the original selected text, preserving stateful callbacks. They are not called for unknown keys or translations without parameters and remain active after `replaceCatalogue()`. Use first-class callable syntax such as `normalizeTranslation(...)`, or `Closure::fromCallable()`, to convert another callable into a closure. Restore the default behavior with `$translator->setNormalizeCallback(Translator::normalize(...))`; an explicitly assigned callback still runs at runtime.
 
 ## Callback sources and mandatory versions
 

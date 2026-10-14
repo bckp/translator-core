@@ -6,15 +6,20 @@ namespace Bckp\Translator\Diagnostics;
 
 use Bckp\Translator\Catalogue;
 use Bckp\Translator\Interfaces\Diagnostics;
+use Bckp\Translator\Interfaces\FormattedCatalogue;
+use Bckp\Translator\Translator;
 use Bckp\Translator\Plural;
 
-final class DiagnosticCatalogue extends Catalogue
+final class DiagnosticCatalogue extends Catalogue implements FormattedCatalogue
 {
+	private readonly ?FormattedCatalogue $formatter;
+
 	public function __construct(
 		private readonly Catalogue $catalogue,
 		private readonly Diagnostics $diagnostics,
 	) {
 		parent::__construct($catalogue->locale, $catalogue->build, $catalogue->versions);
+		$this->formatter = $catalogue instanceof FormattedCatalogue ? $catalogue : null;
 		$this->diagnostics->setLocale($catalogue->locale);
 	}
 
@@ -22,6 +27,25 @@ final class DiagnosticCatalogue extends Catalogue
 	public function get(string $key, float|int|string|null $number = null): ?string
 	{
 		$translation = $this->catalogue->get($key, $number);
+
+		return $this->report($key, $number, $translation);
+	}
+
+	#[\Override]
+	public function format(string $key, float|int|string|null $number = null): ?string
+	{
+		if ($this->formatter !== null) {
+			$translation = $this->formatter->format($key, $number);
+		} else {
+			$translation = $this->catalogue->get($key, $number);
+			$translation = $translation === null ? null : Translator::normalize($translation);
+		}
+
+		return $this->report($key, $number, $translation);
+	}
+
+	private function report(string $key, float|int|string|null $number, ?string $translation): ?string
+	{
 
 		if ($translation === null) {
 			$this->diagnostics->untranslated($key);

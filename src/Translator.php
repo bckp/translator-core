@@ -7,6 +7,7 @@ namespace Bckp\Translator;
 use Bckp\Translator\Exceptions\TranslatorException;
 use Bckp\Translator\Diagnostics\DiagnosticCatalogue;
 use Bckp\Translator\Interfaces\Diagnostics;
+use Bckp\Translator\Interfaces\FormattedCatalogue;
 use Closure;
 use Stringable;
 use UnexpectedValueException;
@@ -20,6 +21,10 @@ final class Translator implements Interfaces\Translator
 {
 	private Closure $normalizeCallback;
 
+	private bool $customNormalizer = false;
+
+	private ?FormattedCatalogue $formattedCatalogue;
+
 	public function __construct(
 		private Catalogue $catalogue,
 		private readonly ?Diagnostics $diagnostics = null,
@@ -29,6 +34,7 @@ final class Translator implements Interfaces\Translator
 		if ($diagnostics !== null) {
 			$this->catalogue = new DiagnosticCatalogue($catalogue, $diagnostics);
 		}
+		$this->formattedCatalogue = $this->catalogue instanceof FormattedCatalogue ? $this->catalogue : null;
 	}
 
 	public static function normalize(string $string): string
@@ -44,6 +50,8 @@ final class Translator implements Interfaces\Translator
 	public function setNormalizeCallback(Closure $callback): void
 	{
 		$this->normalizeCallback = $callback;
+		$this->customNormalizer = true;
+		$this->formattedCatalogue = null;
 	}
 
 	#[\Override]
@@ -59,6 +67,9 @@ final class Translator implements Interfaces\Translator
 			throw new TranslatorException('A replacement catalogue must use the same locale.');
 		}
 		$this->catalogue = $this->diagnostics === null ? $catalogue : new DiagnosticCatalogue($catalogue, $this->diagnostics);
+		$this->formattedCatalogue = !$this->customNormalizer && $this->catalogue instanceof FormattedCatalogue
+			? $this->catalogue
+			: null;
 	}
 
 	#[\Override]
@@ -73,16 +84,24 @@ final class Translator implements Interfaces\Translator
 		if ($parameters === []) {
 			return $this->catalogue->get($message) ?? $message;
 		}
-		$translation = $this->catalogue->get($message, $parameters[0] ?? null);
+
+		if ($this->formattedCatalogue !== null) {
+			$translation = $this->formattedCatalogue->format($message, $parameters[0] ?? null);
+		} else {
+			$translation = $this->catalogue->get($message, $parameters[0] ?? null);
+
+			if ($translation === null) {
+				return $message;
+			}
+			$translation = ($this->normalizeCallback)($translation);
+
+			if (!is_string($translation)) {
+				throw new UnexpectedValueException('The normalize callback must return a string.');
+			}
+		}
 
 		if ($translation === null) {
 			return $message;
-		}
-
-		$translation = ($this->normalizeCallback)($translation);
-
-		if (!is_string($translation)) {
-			throw new UnexpectedValueException('The normalize callback must return a string.');
 		}
 
 		try {

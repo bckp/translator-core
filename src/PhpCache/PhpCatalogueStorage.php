@@ -83,13 +83,14 @@ final readonly class PhpCatalogueStorage implements CatalogueStorage
 
 	private function filename(string $key): string
 	{
-		return $this->path . '/' . hash('sha256', '6:' . $key) . '.php';
+		return $this->path . '/' . hash('sha256', '7:' . $key) . '.php';
 	}
 
 	private function compile(CatalogueDefinition $definition): string
 	{
 		$messages = '';
 		$plurals = '';
+		$formats = '';
 		$definition->messages->each(static function (string $key, string|PluralMessage $value) use (&$messages, &$plurals): void {
 			$exportedKey = var_export($key, true);
 
@@ -99,15 +100,13 @@ final readonly class PhpCatalogueStorage implements CatalogueStorage
 				return;
 			}
 			$messages .= "\t\t\t\t" . $exportedKey . ' => $this->resolvePlural($key, $number),' . "\n";
-			$plurals .= "\t\t\t" . $exportedKey . " => [\n";
-			foreach (Plural::cases() as $plural) {
-				$variant = $value->select($plural);
-
-				if ($variant !== null) {
-					$plurals .= "\t\t\t\t" . var_export($plural->value, true) . ' => ' . var_export($variant, true) . ",\n";
-				}
-			}
-			$plurals .= "\t\t\t\t'fallback' => " . var_export($value->fallback, true) . ",\n\t\t\t],\n";
+			$plurals .= self::pluralEntry($exportedKey, $value);
+		});
+		$definition->normalizedMessages()->each(static function (string $key, string|PluralMessage $value) use (&$formats): void {
+			$exportedKey = var_export($key, true);
+			$formats .= is_string($value)
+				? "\t\t\t" . $exportedKey . ' => ' . var_export($value, true) . ",\n"
+				: self::pluralEntry($exportedKey, $value);
 		});
 		$versions = '';
 		$definition->versions->each(static function (SourceVersion $version) use (&$versions): void {
@@ -124,9 +123,15 @@ final readonly class PhpCatalogueStorage implements CatalogueStorage
 
 			use Bckp\Translator\Plural;
 
+			use function is_string;
+
 			if (!class_exists(Generated__HASH__::class, false)) {
-				final class Generated__HASH__ extends \Bckp\Translator\Catalogue
+				final class Generated__HASH__ extends \Bckp\Translator\Catalogue implements \Bckp\Translator\Interfaces\FormattedCatalogue
 				{
+					private const array Formats = [
+			__FORMATS__
+					];
+
 					private const array Plurals = [
 			__PLURALS__
 					];
@@ -161,6 +166,24 @@ final readonly class PhpCatalogueStorage implements CatalogueStorage
 					}
 
 					#[\Override]
+					public function format(string $key, float|int|string|null $number = null): ?string
+					{
+						$message = self::Formats[$key] ?? null;
+
+						if ($message === null) {
+							return $this->get($key, $number);
+						}
+
+						if (is_string($message)) {
+							return $message;
+						}
+
+						return $message[
+							(is_numeric($number) ? $this->plural((int) $number) : Plural::Other)->value
+						] ?? $message['fallback'];
+					}
+
+					#[\Override]
 					public function has(string $key): bool
 					{
 						return $this->get($key) !== null;
@@ -187,6 +210,7 @@ final readonly class PhpCatalogueStorage implements CatalogueStorage
 		$values = [
 			'__MESSAGES__' => rtrim($messages, "\n"),
 			'__PLURALS__' => rtrim($plurals, "\n"),
+			'__FORMATS__' => rtrim($formats, "\n"),
 			'__LOCALE__' => var_export($definition->locale, true),
 			'__BUILD__' => (string) $definition->build,
 			'__VERSIONS__' => rtrim($versions, "\n"),
@@ -195,5 +219,19 @@ final readonly class PhpCatalogueStorage implements CatalogueStorage
 		$values['__HASH__'] = hash('sha256', strtr($template, $values));
 
 		return strtr($template, $values) . "\n";
+	}
+
+	private static function pluralEntry(string $exportedKey, PluralMessage $message): string
+	{
+		$entry = "\t\t\t" . $exportedKey . " => [\n";
+		foreach (Plural::cases() as $plural) {
+			$variant = $message->select($plural);
+
+			if ($variant !== null) {
+				$entry .= "\t\t\t\t" . var_export($plural->value, true) . ' => ' . var_export($variant, true) . ",\n";
+			}
+		}
+
+		return $entry . "\t\t\t\t'fallback' => " . var_export($message->fallback, true) . ",\n\t\t\t],\n";
 	}
 }

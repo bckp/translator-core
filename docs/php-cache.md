@@ -27,10 +27,12 @@ The compiled class returns ordinary texts directly from a generated `match` and 
 
 Generated `match` methods use more OPcache memory than the 2.x static-array catalogue. See the [core benchmark comparison](../benchmarks/README.md) for measured translation times and generated-script memory use.
 
+The compiled class implements the optional `FormattedCatalogue` interface. Its `format()` method reads `private const array Formats`, which stores only ordinary texts or plural entries changed by the default normalizer. Other entries delegate to `get()`. Raw text, plural rules and diagnostic lookups remain unchanged. A custom translator callback receives the original text and runs at runtime instead of using `Formats`.
+
 Use a directory dedicated to generated cache files and writable by PHP. Like any executable PHP cache, it must not be writable by untrusted users. No source data is loaded while using a warm cache whose verification was skipped.
 
 Use core's `MemoryStorage` for an in-process backend without filesystem persistence.
 
 At compilation, the storage uses reflection and PHP tokens to copy the selected rule's method body from `PluralProvider` into the generated `plural()` method. `PluralProvider` remains the rule's single definition. The source file is read only when compiling; cached plural selection makes no provider call and performs no source IO. Changing the provider after compilation requires a rebuild to update the embedded rule.
 
-Format 6 excludes earlier caches so the embedded rule is used after upgrading. The source body participates in the generated class hash, allowing multiple compiled revisions to coexist in one process.
+Format 7 excludes earlier caches so default normalization is compiled after upgrading. The source body participates in the generated class hash, allowing multiple compiled revisions to coexist in one process.
